@@ -1,4 +1,18 @@
 import os
+import sys
+
+if __name__ == "__main__" and "--list-pretrained" in sys.argv:
+    try:
+        import open_clip
+    except ImportError as error:
+        raise SystemExit(
+            "open_clip is not installed. Install project requirements before listing checkpoints."
+        ) from error
+
+    for model_name, pretrained in open_clip.list_pretrained():
+        print(f"{model_name}\t{pretrained}")
+    raise SystemExit(0)
+
 import yaml
 import clip
 from tqdm import tqdm
