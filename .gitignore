@@ -1,4 +1,12 @@
+*__pycache__*
+
 # ignore dataset files
 dataset_rsicd.json
 RSICD_images
 txtclasses_rsicd
+
+# ignore manually downloaded model weights
+weights/
+
+# ignore default zero-shot evaluation artifacts
+results/open_clip_zeroshot/
