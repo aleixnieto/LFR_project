@@ -7,6 +7,8 @@ IMPLEMENTING DATALOADER FOR RSICD DATASET
 """
 
 import json
+from pathlib import Path
+from typing import Callable
 from torch.utils.data import Dataset, DataLoader
 import matplotlib.pyplot as plt
 import random
@@ -18,6 +20,92 @@ import os
 from utils import _search_class, tokenize_texts, check_duplicates
 
 
+
+class RSICDZeroShotDataset(Dataset):
+    """RSICD test split for zero-shot classification.
+
+    Labels are loaded once from the class-list files, rather than searched for
+    each image access. ``transform`` is supplied by the caller so the dataset
+    always uses the preprocessing required by the selected OpenCLIP model.
+    """
+
+    def __init__(
+        self,
+        image_dir: str | Path,
+        json_path: str | Path,
+        class_dir: str | Path,
+        transform: Callable,
+    ) -> None:
+        self.image_dir = Path(image_dir)
+        self.json_path = Path(json_path)
+        self.class_dir = Path(class_dir)
+        self.transform = transform
+
+        if not self.image_dir.is_dir():
+            raise FileNotFoundError(f"RSICD image directory does not exist: {self.image_dir}")
+        if not self.json_path.is_file():
+            raise FileNotFoundError(f"RSICD metadata file does not exist: {self.json_path}")
+        if not self.class_dir.is_dir():
+            raise FileNotFoundError(f"RSICD class directory does not exist: {self.class_dir}")
+
+        self.class_names = [path.stem for path in sorted(self.class_dir.iterdir()) if path.is_file()]
+        if not self.class_names:
+            raise ValueError(f"No class-list files found in: {self.class_dir}")
+
+        self.filename_to_class = self._build_filename_to_class()
+        with self.json_path.open(encoding="utf-8") as file:
+            images = json.load(file)["images"]
+
+        self.images_info = [item for item in images if item.get("split") == "test"]
+        if not self.images_info:
+            raise ValueError(f"No test-split images found in: {self.json_path}")
+
+        self._validate_test_images()
+
+    def _build_filename_to_class(self) -> dict[str, str]:
+        filename_to_class: dict[str, str] = {}
+        for class_file in sorted(path for path in self.class_dir.iterdir() if path.is_file()):
+            class_name = class_file.stem
+            for raw_filename in class_file.read_text(encoding="utf-8").splitlines():
+                filename = raw_filename.strip()
+                if not filename:
+                    continue
+                previous_class = filename_to_class.setdefault(filename, class_name)
+                if previous_class != class_name:
+                    raise ValueError(
+                        f"Filename {filename!r} appears in multiple class lists: "
+                        f"{previous_class!r} and {class_name!r}"
+                    )
+        return filename_to_class
+
+    def _validate_test_images(self) -> None:
+        missing_labels = []
+        missing_images = []
+        for item in self.images_info:
+            filename = item.get("filename")
+            if not filename:
+                raise ValueError(f"Test metadata entry has no filename: {item!r}")
+            if filename not in self.filename_to_class:
+                missing_labels.append(filename)
+            if not (self.image_dir / filename).is_file():
+                missing_images.append(filename)
+
+        if missing_labels or missing_images:
+            details = []
+            if missing_labels:
+                details.append(f"missing labels ({len(missing_labels)}): {missing_labels[:3]}")
+            if missing_images:
+                details.append(f"missing images ({len(missing_images)}): {missing_images[:3]}")
+            raise ValueError("Invalid RSICD test resources; " + "; ".join(details))
+
+    def __len__(self) -> int:
+        return len(self.images_info)
+
+    def __getitem__(self, idx: int):
+        filename = self.images_info[idx]["filename"]
+        with Image.open(self.image_dir / filename) as image:
+            image_tensor = self.transform(image.convert("RGB"))
+        return image_tensor, self.filename_to_class[filename], filename
 
 #========= DATALOADER CLASS ========#
 class rsicd_loader(Dataset):
