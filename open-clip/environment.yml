@@ -72,6 +72,7 @@ dependencies:
       - nvidia-nvjitlink-cu12==12.6.85
       - nvidia-nvtx-cu12==12.6.77
       - openai-clip==1.0.1
+      - open_clip_torch==3.3.0
       - packaging==25.0
       - pandas==2.2.3
       - pillow==11.2.1
