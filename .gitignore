@@ -8,5 +8,8 @@ txtclasses_rsicd
 # ignore manually downloaded model weights
 weights/
 
+
+# ignore default supervised fine-tuning artifacts
+results/open_clip_finetune/
 # ignore default zero-shot evaluation artifacts
 results/open_clip_zeroshot/

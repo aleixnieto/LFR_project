@@ -20,6 +20,34 @@ import os
 from utils import _search_class, tokenize_texts, check_duplicates
 
 
+def _validate_rsicd_paths(
+    image_dir: str | Path, json_path: str | Path
+) -> tuple[Path, Path]:
+    """Resolve and validate the common image-directory and JSON inputs."""
+    image_dir = Path(image_dir)
+    json_path = Path(json_path)
+    if not image_dir.is_dir():
+        raise FileNotFoundError(f"RSICD image directory does not exist: {image_dir}")
+    if not json_path.is_file():
+        raise FileNotFoundError(f"RSICD metadata file does not exist: {json_path}")
+    return image_dir, json_path
+
+
+def _load_rsicd_split(json_path: Path, split: str) -> list[dict]:
+    """Load one JSON split while preserving its declared record order."""
+    with json_path.open(encoding="utf-8") as file:
+        try:
+            images = json.load(file)["images"]
+        except (json.JSONDecodeError, KeyError) as error:
+            raise ValueError(f"Invalid RSICD metadata file: {json_path}") from error
+    return [item for item in images if item.get("split") == split]
+
+
+def _load_transformed_image(image_dir: Path, filename: str, transform: Callable):
+    """Open an RSICD image as RGB and apply caller-supplied preprocessing."""
+    with Image.open(image_dir / filename) as image:
+        return transform(image.convert("RGB"))
+
 
 class RSICDZeroShotDataset(Dataset):
     """RSICD test split for zero-shot classification.
@@ -36,15 +64,10 @@ class RSICDZeroShotDataset(Dataset):
         class_dir: str | Path,
         transform: Callable,
     ) -> None:
-        self.image_dir = Path(image_dir)
-        self.json_path = Path(json_path)
+        self.image_dir, self.json_path = _validate_rsicd_paths(image_dir, json_path)
         self.class_dir = Path(class_dir)
         self.transform = transform
 
-        if not self.image_dir.is_dir():
-            raise FileNotFoundError(f"RSICD image directory does not exist: {self.image_dir}")
-        if not self.json_path.is_file():
-            raise FileNotFoundError(f"RSICD metadata file does not exist: {self.json_path}")
         if not self.class_dir.is_dir():
             raise FileNotFoundError(f"RSICD class directory does not exist: {self.class_dir}")
 
@@ -53,10 +76,7 @@ class RSICDZeroShotDataset(Dataset):
             raise ValueError(f"No class-list files found in: {self.class_dir}")
 
         self.filename_to_class = self._build_filename_to_class()
-        with self.json_path.open(encoding="utf-8") as file:
-            images = json.load(file)["images"]
-
-        self.images_info = [item for item in images if item.get("split") == "test"]
+        self.images_info = _load_rsicd_split(self.json_path, "test")
         if not self.images_info:
             raise ValueError(f"No test-split images found in: {self.json_path}")
 
@@ -103,9 +123,112 @@ class RSICDZeroShotDataset(Dataset):
 
     def __getitem__(self, idx: int):
         filename = self.images_info[idx]["filename"]
-        with Image.open(self.image_dir / filename) as image:
-            image_tensor = self.transform(image.convert("RGB"))
+        image_tensor = _load_transformed_image(self.image_dir, filename, self.transform)
         return image_tensor, self.filename_to_class[filename], filename
+
+
+class RSICDSupervisedDataset(Dataset):
+    """Captioned RSICD records for OpenCLIP supervised fine-tuning."""
+
+    def __init__(
+        self,
+        image_dir: str | Path,
+        records: list[dict],
+        transform: Callable,
+        tokenizer: Callable,
+    ) -> None:
+        self.image_dir = Path(image_dir)
+        self.transform = transform
+        self.tokenizer = tokenizer
+        self.records = records
+
+        if not self.image_dir.is_dir():
+            raise FileNotFoundError(f"RSICD image directory does not exist: {self.image_dir}")
+        if not self.records:
+            raise ValueError("Supervised RSICD dataset has no records")
+
+        self.filenames: list[str] = []
+        self.caption_tokens: list[torch.Tensor] = []
+        for record in self.records:
+            filename = record.get("filename")
+            if not filename:
+                raise ValueError(f"RSICD record has no filename: {record!r}")
+            if not (self.image_dir / filename).is_file():
+                raise FileNotFoundError(f"RSICD image does not exist: {self.image_dir / filename}")
+
+            captions = list(
+                dict.fromkeys(
+                    " ".join(sentence["tokens"])
+                    for sentence in record.get("sentences", [])
+                    if sentence.get("tokens")
+                )
+            )
+            if not captions:
+                raise ValueError(f"RSICD image has no captions: {filename}")
+
+            tokens = self.tokenizer(captions)
+            if not isinstance(tokens, torch.Tensor) or tokens.ndim != 2:
+                raise TypeError(
+                    "Tokenizer must return a [num_captions, context_length] torch.Tensor"
+                )
+            self.filenames.append(filename)
+            self.caption_tokens.append(tokens)
+
+    def __len__(self) -> int:
+        return len(self.records)
+
+    def __getitem__(self, idx: int):
+        image_tensor = _load_transformed_image(
+            self.image_dir, self.filenames[idx], self.transform
+        )
+        return image_tensor, self.caption_tokens[idx], self.filenames[idx]
+
+
+def build_supervised_train_val_datasets(
+    image_dir: str | Path,
+    json_path: str | Path,
+    train_transform: Callable,
+    validation_transform: Callable,
+    tokenizer: Callable,
+    train_fraction: float,
+    seed: int,
+) -> tuple[RSICDSupervisedDataset, RSICDSupervisedDataset]:
+    """Split captioned JSON ``train`` records deterministically for fine-tuning."""
+    image_dir, json_path = _validate_rsicd_paths(image_dir, json_path)
+    if not 0 < train_fraction < 1:
+        raise ValueError("train_fraction must be strictly between 0 and 1")
+
+    records = _load_rsicd_split(json_path, "train")
+    if len(records) < 2:
+        raise ValueError("RSICD JSON train split must contain at least two records")
+
+    generator = torch.Generator().manual_seed(seed)
+    indices = torch.randperm(len(records), generator=generator).tolist()
+    train_size = int(len(records) * train_fraction)
+    train_records = [records[index] for index in indices[:train_size]]
+    validation_records = [records[index] for index in indices[train_size:]]
+
+    return (
+        RSICDSupervisedDataset(image_dir, train_records, train_transform, tokenizer),
+        RSICDSupervisedDataset(image_dir, validation_records, validation_transform, tokenizer),
+    )
+
+
+def collate_supervised_captions(batch):
+    """Stack images and flatten all captions with image-index targets."""
+    images, caption_batches, filenames = zip(*batch)
+    caption_to_image = torch.cat(
+        [
+            torch.full((captions.shape[0],), image_index, dtype=torch.long)
+            for image_index, captions in enumerate(caption_batches)
+        ]
+    )
+    return {
+        "images": torch.stack(images),
+        "texts": torch.cat(caption_batches),
+        "caption_to_image": caption_to_image,
+        "filenames": list(filenames),
+    }
 
 #========= DATALOADER CLASS ========#
 class rsicd_loader(Dataset):
