@@ -1,1 +1,4 @@
-./data
+# ignore dataset files
+dataset_rsicd.json
+RSICD_images
+txtclasses_rsicd
