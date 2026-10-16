@@ -75,6 +75,44 @@ Results: results/open_clip_zeroshot
 
 Use `python open-clip/main_zeroshot.py --list-pretrained` to list model/tag pairs supported by the installed OpenCLIP version. Listed pairs still need matching local weights and preprocessing suport.
 
+### Comparing selected zero-shot models
+
+`main_zeroshot_compare.py` evaluates and compare the models listed in `zeroshot_compare_config.yaml` on the configured test dataset.
+
+`checkpoint_type: openclip` is for a raw OpenCLIP pretrained weights file (such as the baseline `.bin`). `checkpoint_type: finetune` is for this project’s wrapped
+fine-tuning checkpoint (such as `ckp_best.pth`).
+
+The output contains `summary.json` and an aggregate `model_comparison.png`, plus per-model `metrics.json`, `predictions.json`, per-class F1 values, and `confusion_matrix.png`.
+
+
+```yaml
+image_dir: ../RSICD_images
+json_path: ../dataset_rsicd.json
+class_dir: ../txtclasses_rsicd
+
+models:
+  - label: baseline
+    model_name: ViT-B-32
+    pretrained_tag: laion2b_s34b_b79k
+    checkpoint_type: openclip
+    checkpoint_path: ../weights/open_clip/ViT-B-32-laion2b_s34b_b79k.bin
+
+  - label: fine_tuned
+    model_name: ViT-B-32
+    pretrained_tag: laion2b_s34b_b79k
+    checkpoint_type: finetune
+    checkpoint_path: ../results/my_finetune_run/ckp_best.pth
+```
+
+Run the configured comparison:
+
+```bash
+python open-clip/main_zeroshot_compare.py --device cuda --output-dir evaluations/open_clip_zeroshot_comparison
+```
+
+Additional Options:
+* To evaluate a subset of the listed models, add flags  `--model baseline --model fine_tuned`, one for each model
+
 ## Running main_finetune.py
 
 `open-clip/main_finetune.py` fine-tunes the configured model on RSICD **image-caption pairs**. Technical details of the implementation is found below. It uses the same manually downloaded checkpoint described in the zero-shot section, as the baseline policy for fine-tuning.
