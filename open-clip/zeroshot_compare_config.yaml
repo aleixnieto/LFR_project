@@ -1,0 +1,20 @@
+# Explicit RSICD test resources. Each selected model declares its own architecture.
+# Paths are relative to this configuration file.
+image_dir: ../RSICD_images
+json_path: ../dataset_rsicd.json
+class_dir: ../txtclasses_rsicd
+
+# Evaluate only the models listed here; the evaluator never scans all run folders.
+models:
+  - label: baseline
+    model_name: ViT-B-32
+    pretrained_tag: laion2b_s34b_b79k
+    checkpoint_type: openclip
+    checkpoint_path: ../weights/open_clip/ViT-B-32-laion2b_s34b_b79k.bin
+
+  # Add a fine-tuned run explicitly when its checkpoint exists:
+  - label: plot_short
+    model_name: ViT-B-32
+    pretrained_tag: laion2b_s34b_b79k
+    checkpoint_type: finetune
+    checkpoint_path: ../results/open_clip_finetune_plot_short/ckp_best.pth
