@@ -1,439 +1,503 @@
-import os
-import sys
-import yaml
+"""Supervised OpenCLIP image-caption fine-tuning on the RSICD JSON train split."""
+
 import argparse
-import clip
-from tqdm import tqdm
-import numpy as np
-from collections import defaultdict
+import json
+import random
 import shutil
+from dataclasses import dataclass, replace
+from pathlib import Path
+
+import numpy as np
+import open_clip
+import torch
+import torch.nn.functional as functional
+import yaml
+from torch.utils.data import DataLoader
 from transformers import Adafactor, get_scheduler
 
-import torch
-from torch.utils.data import DataLoader
-import torch.nn as nn
+from dataloader import build_supervised_train_val_datasets, collate_supervised_captions
 
-from dataloader import rsicd_loader
-from utils import *
 
-from torchvision import transforms
-from torchvision.transforms import v2 as T
+DEFAULT_CONFIG_PATH = Path(__file__).with_name("finetune_config.yaml")
 
-# TODO, this should be put somewhere else of course
-unsup_augment = T.Compose([
-    T.RandomResizedCrop(224, scale=(0.8, 1.0), interpolation=transforms.InterpolationMode.BICUBIC),
-    T.RandomHorizontalFlip(),
-    T.ColorJitter(0.4, 0.4, 0.4, 0.1),
-    T.Normalize(
-        mean=[0.48145466, 0.4578275, 0.40821073],
-        std=[0.26862954, 0.26130258, 0.27577711]
+
+@dataclass(frozen=True)
+class FineTuneConfig:
+    model_name: str
+    pretrained_tag: str
+    checkpoint_path: Path
+    image_dir: Path
+    json_path: Path
+    seed: int
+    supervised_train_fraction: float
+    batch_size: int
+    num_workers: int
+    epochs: int
+    learning_rate: float
+    warmup_fraction: float
+    output_dir: Path
+
+
+def resolve_config_path(config_path: Path, configured_path: str) -> Path:
+    path = Path(configured_path)
+    if not path.is_absolute():
+        path = config_path.parent / path
+    return path.resolve()
+
+
+def load_config(config_path: Path) -> FineTuneConfig:
+    """Load the local-only model and supervised-data settings."""
+    config_path = config_path.resolve()
+    if not config_path.is_file():
+        raise FileNotFoundError(f"Fine-tuning config does not exist: {config_path}")
+
+    with config_path.open(encoding="utf-8") as config_file:
+        values = yaml.safe_load(config_file)
+    if not isinstance(values, dict):
+        raise ValueError(f"Fine-tuning config must contain a mapping: {config_path}")
+
+    required_strings = (
+        "model_name",
+        "pretrained_tag",
+        "checkpoint_path",
+        "image_dir",
+        "json_path",
+        "output_dir",
     )
-])
+    missing = [key for key in required_strings if not isinstance(values.get(key), str)]
+    if missing:
+        raise ValueError(f"Fine-tuning config is missing string values for: {', '.join(missing)}")
 
-def clip_loss(model, imgs, texts, caption_to_image):
-    """
-    Contrastive loss supporting variable number of captions per image.
+    try:
+        seed = int(values["seed"])
+        train_fraction = float(values["supervised_train_fraction"])
+        batch_size = int(values["batch_size"])
+        num_workers = int(values["num_workers"])
+        epochs = int(values["epochs"])
+        learning_rate = float(values["learning_rate"])
+        warmup_fraction = float(values["warmup_fraction"])
+    except (KeyError, TypeError, ValueError) as error:
+        raise ValueError("Fine-tuning config has invalid numeric settings") from error
+    if not 0 < train_fraction < 1:
+        raise ValueError("supervised_train_fraction must be strictly between zero and one")
+    if batch_size <= 0 or num_workers < 0 or epochs <= 0 or learning_rate <= 0:
+        raise ValueError("batch_size, epochs, and learning_rate must be positive; num_workers cannot be negative")
+    if not 0 <= warmup_fraction < 1:
+        raise ValueError("warmup_fraction must be at least zero and less than one")
 
-    Args:
-        imgs: Tensor [B, 3, H, W]
-        texts: Tensor [N, 77]
-        caption_to_image: LongTensor [N], index mapping text to image ID
-    """
-    device = imgs.device
-    B = imgs.shape[0]
-    N = texts.shape[0]
+    return FineTuneConfig(
+        model_name=values["model_name"],
+        pretrained_tag=values["pretrained_tag"],
+        checkpoint_path=resolve_config_path(config_path, values["checkpoint_path"]),
+        image_dir=resolve_config_path(config_path, values["image_dir"]),
+        json_path=resolve_config_path(config_path, values["json_path"]),
+        seed=seed,
+        supervised_train_fraction=train_fraction,
+        batch_size=batch_size,
+        num_workers=num_workers,
+        epochs=epochs,
+        learning_rate=learning_rate,
+        warmup_fraction=warmup_fraction,
+        output_dir=resolve_config_path(config_path, values["output_dir"]),
+    )
 
 
-    img_features = model.encode_image(imgs)  # [B, D]
-    txt_features = model.encode_text(texts)  # [N, D]
- 
-    # Normalize
-    img_features = img_features / img_features.norm(dim=-1, keepdim=True)
-    txt_features = txt_features / txt_features.norm(dim=-1, keepdim=True)
+def resolve_device(device_name: str) -> torch.device:
+    if device_name == "auto":
+        return torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    device = torch.device(device_name)
+    if device.type == "cuda" and not torch.cuda.is_available():
+        raise RuntimeError(f"CUDA device requested but unavailable: {device_name}")
+    if device.type not in {"cpu", "cuda"}:
+        raise ValueError(f"Unsupported device: {device_name}. Use auto, cpu, or cuda.")
+    return device
 
+
+def set_seed(seed: int) -> None:
+    random.seed(seed)
+    np.random.seed(seed)
+    torch.manual_seed(seed)
+    if torch.cuda.is_available():
+        torch.cuda.manual_seed_all(seed)
+
+
+def load_local_openclip_model(
+    config: FineTuneConfig, device: torch.device
+) -> tuple[torch.nn.Module, object, object, object]:
+    """Load a configured checkpoint without permitting an automatic download."""
+    if not config.checkpoint_path.is_file():
+        raise FileNotFoundError(
+            f"OpenCLIP checkpoint is missing: {config.checkpoint_path}. "
+            "Download it manually and update checkpoint_path in finetune_config.yaml."
+        )
+
+    pretrained_config = open_clip.get_pretrained_cfg(
+        config.model_name, config.pretrained_tag
+    )
+    if pretrained_config is None:
+        raise RuntimeError(
+            "Installed OpenCLIP has no preprocessing configuration for "
+            f"{config.model_name} / {config.pretrained_tag}."
+        )
+
+    model, train_transform, validation_transform = open_clip.create_model_and_transforms(
+        config.model_name,
+        pretrained=str(config.checkpoint_path),
+        device=device,
+        image_mean=pretrained_config["mean"],
+        image_std=pretrained_config["std"],
+        image_interpolation=pretrained_config["interpolation"],
+        image_resize_mode=pretrained_config["resize_mode"],
+    )
+    return model, open_clip.get_tokenizer(config.model_name), train_transform, validation_transform
+
+
+def supervised_contrastive_loss(
+    model: torch.nn.Module,
+    images: torch.Tensor,
+    texts: torch.Tensor,
+    caption_to_image: torch.Tensor,
+) -> tuple[torch.Tensor, dict[str, float]]:
+    """Symmetric CLIP loss where every caption is positive for its source image."""
+    if images.ndim != 4 or texts.ndim != 2:
+        raise ValueError("Expected images [batch, channels, height, width] and texts [captions, tokens]")
+    if caption_to_image.ndim != 1 or caption_to_image.numel() != texts.shape[0]:
+        raise ValueError("caption_to_image must map every caption token row to an image")
+    if caption_to_image.numel() == 0:
+        raise ValueError("A supervised batch must contain at least one caption")
+    if caption_to_image.min().item() < 0 or caption_to_image.max().item() >= images.shape[0]:
+        raise ValueError("caption_to_image contains an out-of-range image index")
+
+    image_features = functional.normalize(model.encode_image(images), dim=-1)
+    text_features = functional.normalize(model.encode_text(texts), dim=-1)
     logit_scale = model.logit_scale.exp()
+    text_to_image_logits = logit_scale * text_features @ image_features.T
+    image_to_text_logits = text_to_image_logits.T
 
+    loss_text_to_image = functional.cross_entropy(text_to_image_logits, caption_to_image)
+    image_to_text_targets = functional.one_hot(
+        caption_to_image, num_classes=images.shape[0]
+    ).T.to(image_to_text_logits.dtype)
+    image_to_text_targets /= image_to_text_targets.sum(dim=1, keepdim=True)
+    loss_image_to_text = -(
+        image_to_text_targets * functional.log_softmax(image_to_text_logits, dim=1)
+    ).sum(dim=1).mean()
+    loss = (loss_text_to_image + loss_image_to_text) / 2
 
-    # === Text-to-image ===
-    logits_txt2img = logit_scale * (txt_features @ img_features.T)  # [N, B]
-
-    targets_txt2img = torch.zeros_like(logits_txt2img)
-    targets_txt2img[torch.arange(N), caption_to_image] = 1.0
-
-
-    log_probs_txt2img = torch.log_softmax(logits_txt2img, dim=1)
-
-
-    loss_txt2img = -(targets_txt2img * log_probs_txt2img).sum(dim=1).mean()
-
-    # === Image-to-text ===
-    logits_img2txt = logit_scale * (img_features @ txt_features.T)  # [B, N]
-    targets_img2txt = torch.zeros_like(logits_img2txt)
-    
-
-    # NOTE, soft targets
-    for i in range(B):
-        pos = (caption_to_image == i).nonzero(as_tuple=True)[0]
-        if len(pos) > 0:
-            targets_img2txt[i, pos] = 1.0 / len(pos)  # soft assignment
-    
-
-    log_probs_img2txt = torch.log_softmax(logits_img2txt, dim=1)
-    loss_img2txt = -(targets_img2txt * log_probs_img2txt).sum(dim=1).mean()
-
-    total_loss = (loss_txt2img + loss_img2txt) / 2
-
-    # === Logging cosine similarities (only positive pairs) ===
-    sims_txt2img = logits_txt2img[torch.arange(N), caption_to_image]
-    avg_sim_txt2img = sims_txt2img.mean().item()
-
-    sims_img2txt = logits_img2txt[targets_img2txt.bool()]
-    avg_sim_img2txt = sims_img2txt.mean().item()
-
-    return total_loss, avg_sim_txt2img, avg_sim_img2txt
-
-
-
-def train_one_epoch(model, dataloader, optimizer, lr_scheduler, device):
-    model.train()
-    total_loss = 0
-    total_sup_loss = 0
-    total_unsup_loss = 0
-    total_sim_txt2img = 0
-    total_sim_img2txt = 0
-    num_batches = 0
-    
-    tbar = tqdm(dataloader, desc="Training")
-    for batch in tbar:
-        imgs = batch["images"].to(device)
-        is_supervised = batch["is_supervised"].to(device)
-
-        texts = batch["texts"]
-        caption_to_image = batch["caption_to_image"]
-
-        if texts is not None:
-            texts = texts.to(device)
-            caption_to_image = caption_to_image.to(device)
-        
-
-        sup_imgs = imgs[is_supervised]
-        unsup_imgs = imgs[~is_supervised]
-
-        # === Remap caption_to_image indices ===
-        if texts is not None:
-            old_to_new = {i: new_i for new_i, i in enumerate(torch.where(is_supervised)[0].tolist())}
-            caption_mask = torch.tensor(
-                [i.item() in old_to_new for i in caption_to_image],
-                dtype=torch.bool,
-                device=device
-            )
-            texts = texts[caption_mask]
-            caption_to_image = caption_to_image[caption_mask]
-            caption_to_image = torch.tensor(
-                [old_to_new[i.item()] for i in caption_to_image],
-                dtype=torch.long,
-                device=device
-            )
-
-        optimizer.zero_grad()
-        sup_loss = torch.zeros(1, device=device, requires_grad=True)
-        unsup_loss = torch.zeros(1, device=device, requires_grad=True)
-
-        # === Supervised loss (CLIP) ===
-        if sup_imgs.shape[0] > 0:
-            sup_loss, sims_txt2img, sims_img2txt = clip_loss(model, sup_imgs, texts, caption_to_image)
-        
-        else:
-            sims_txt2img = sims_img2txt = 0.0
-
-        # NOTE this should be a function later of course 
-        # === Unsupervised SimCLR loss ===
-        if unsup_imgs.shape[0] > 0:
-            # Generate two augmentations per image (returns [2B, 3, 224, 224])
-            views1 = unsup_augment(unsup_imgs)
-            views2 = unsup_augment(unsup_imgs)
-            views = torch.cat([views1, views2], dim=0)  # [2B, 3, 224, 224]
-            
-            feats = model.encode_image(views)
-            feats = feats / feats.norm(dim=-1, keepdim=True)
-
-            logits = feats @ feats.T  # [2B, 2B]
-            logits = logits / 0.07  # temperature
-
-            B = unsup_imgs.size(0)
-            labels = torch.cat([
-                torch.arange(B, 2 * B, device=device),
-                torch.arange(B, device=device)
-            ])
-
-            # Mask diagonal (self-similarity)
-            logits.masked_fill_(torch.eye(2 * B, device=device).bool(), -1e4)
-
-            unsup_loss = nn.CrossEntropyLoss()(logits, labels)
-
-        num_sup = sup_imgs.shape[0]
-        num_unsup = unsup_imgs.shape[0]
-
-        print(f'supvised samples {num_sup} vs unsupervised samples {num_unsup}')
-
-        total = num_sup + num_unsup
-
-        # NOTE weigthing
-        beta_sup = num_sup / total
-        beta_unsup = num_unsup / total
-                
-        loss = beta_sup * sup_loss + beta_unsup * unsup_loss
-        loss.backward()
-        optimizer.step()
-        lr_scheduler.step()
-        
-        logit_scale_value = model.logit_scale.exp().item()
-        current_lr = optimizer.param_groups[0]["lr"]
-        
-        model.logit_scale.data.clamp_(0, 4.6052)
-        
-
-        total_loss += loss.item()
-        total_sup_loss += sup_loss.item()
-        total_unsup_loss += unsup_loss.item()
-        
-        total_sim_txt2img += sims_txt2img
-        total_sim_img2txt += sims_img2txt
-        num_batches += 1
-
-
-    avg_loss = total_loss / num_batches
-    avg_sup_loss = total_sup_loss / num_batches
-    avg_unsup_loss = total_unsup_loss / num_batches
-    
-    avg_sim_txt2img = total_sim_txt2img / num_batches
-    avg_sim_img2txt = total_sim_img2txt / num_batches
-    
-    logit_scale_value = model.logit_scale.exp().item()
-    current_lr = optimizer.param_groups[0]["lr"]
-
-    return {
-    "loss": avg_loss,
-    "sup_loss": avg_sup_loss,
-    "unsup_loss": avg_unsup_loss,
-    "sim_img2txt": avg_sim_img2txt,
-    "sim_txt2img": avg_sim_txt2img,
-    "logit_scale": logit_scale_value,
-    "lr": current_lr,
+    positive_text_to_image = text_to_image_logits[
+        torch.arange(texts.shape[0], device=images.device), caption_to_image
+    ].mean()
+    positive_image_to_text = (image_to_text_logits * image_to_text_targets).sum(dim=1).mean()
+    return loss, {
+        "positive_text_to_image_logit": float(positive_text_to_image.detach().item()),
+        "positive_image_to_text_logit": float(positive_image_to_text.detach().item()),
+        "logit_scale": float(logit_scale.detach().item()),
     }
 
+
+def move_batch_to_device(batch: dict[str, object], device: torch.device) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
+    return (
+        batch["images"].to(device),
+        batch["texts"].to(device),
+        batch["caption_to_image"].to(device),
+    )
+
+
+def mean_epoch_statistics(statistics: list[dict[str, float]]) -> dict[str, float]:
+    if not statistics:
+        raise ValueError("No batches were processed")
+    keys = statistics[0].keys()
+    return {key: sum(item[key] for item in statistics) / len(statistics) for key in keys}
+
+
+def train_one_epoch(
+    model: torch.nn.Module,
+    data_loader: DataLoader,
+    optimizer: torch.optim.Optimizer,
+    scheduler,
+    device: torch.device,
+    max_batches: int | None,
+) -> dict[str, float]:
+    """Fine-tune every OpenCLIP parameter for one supervised epoch."""
+    model.train()
+    batch_statistics: list[dict[str, float]] = []
+    for batch_index, batch in enumerate(data_loader):
+        if max_batches is not None and batch_index >= max_batches:
+            break
+        optimizer.zero_grad(set_to_none=True)
+        loss, statistics = supervised_contrastive_loss(
+            model, *move_batch_to_device(batch, device)
+        )
+        if not torch.isfinite(loss):
+            raise FloatingPointError(f"Non-finite training loss at batch {batch_index}: {loss.item()}")
+        loss.backward()
+        optimizer.step()
+        with torch.no_grad():
+            model.logit_scale.clamp_(0, 4.6052)
+        scheduler.step()
+        batch_statistics.append({"loss": float(loss.detach().item()), **statistics})
+
+    metrics = mean_epoch_statistics(batch_statistics)
+    metrics["learning_rate"] = float(optimizer.param_groups[0]["lr"])
+    metrics["batches"] = float(len(batch_statistics))
+    return metrics
 
 
 @torch.no_grad()
-def validate_one_epoch(model, dataloader, device):
+def validate_one_epoch(
+    model: torch.nn.Module,
+    data_loader: DataLoader,
+    device: torch.device,
+    max_batches: int | None,
+) -> dict[str, float]:
+    """Evaluate the held-out supervised subset without updating parameters."""
     model.eval()
-    total_loss = 0
-    total_sim_txt2img = 0
-    total_sim_img2txt = 0
-    num_batches = 0
-
-    vbar = tqdm(dataloader, desc="Validating")
-
-    for batch in vbar:
-        images = batch["images"].to(device)
-        is_supervised = batch["is_supervised"].to(device)
-        texts = batch["texts"]
-        caption_to_image = batch["caption_to_image"]
-
-        if is_supervised.sum() == 0 or texts is None or caption_to_image is None:
-            continue
-
-        sup_imgs = images[is_supervised]  # fix: slice inside function
-        texts = texts.to(device)
-        caption_to_image = caption_to_image.to(device)
-
-        # === Remap caption_to_image indices ===
-        old_to_new = {i: new_i for new_i, i in enumerate(torch.where(is_supervised)[0].tolist())}
-        caption_mask = torch.tensor(
-            [i.item() in old_to_new for i in caption_to_image],
-            dtype=torch.bool,
-            device=device
+    batch_statistics: list[dict[str, float]] = []
+    for batch_index, batch in enumerate(data_loader):
+        if max_batches is not None and batch_index >= max_batches:
+            break
+        loss, statistics = supervised_contrastive_loss(
+            model, *move_batch_to_device(batch, device)
         )
-        texts = texts[caption_mask]
-        caption_to_image = caption_to_image[caption_mask]
-        caption_to_image = torch.tensor(
-            [old_to_new[i.item()] for i in caption_to_image],
-            dtype=torch.long,
-            device=device
-        )
+        if not torch.isfinite(loss):
+            raise FloatingPointError(f"Non-finite validation loss at batch {batch_index}: {loss.item()}")
+        batch_statistics.append({"loss": float(loss.item()), **statistics})
+
+    metrics = mean_epoch_statistics(batch_statistics)
+    metrics["batches"] = float(len(batch_statistics))
+    return metrics
 
 
-        loss, sims_txt2img, sims_img2txt = clip_loss(model, sup_imgs, texts, caption_to_image)
-
-        total_loss += loss.item()
-        total_sim_txt2img += sims_txt2img
-        total_sim_img2txt += sims_img2txt
-        num_batches += 1
-
-    if num_batches == 0:
-        print("⚠️ No supervised validation batches found!")
-        return {
-            "loss": float("nan"),
-            "sim_img2txt": float("nan"),
-            "sim_txt2img": float("nan"),
-        }
-
-    return {
-        "loss": total_loss / num_batches,
-        "sim_img2txt": total_sim_img2txt / num_batches,
-        "sim_txt2img": total_sim_txt2img / num_batches,
-    }
-
-
-
-if __name__ == "__main__":
-    
-    log_data = defaultdict(list)
-
-    assert len(sys.argv) > 1, "Please provide the path to the config file."
-    config_name = sys.argv[1]
-
-    config_rel_path = os.path.relpath(config_name, "config") 
-    config_no_ext = os.path.splitext(config_rel_path)[0]      
-
-    config = get_config(config_name)
-    experiment_name = config["experiment_name"]
-    checkpoint_dir = os.path.join("results", config_no_ext)       
-
-    os.makedirs(checkpoint_dir, exist_ok=True)
-
-    # Save config in folder
-    saved_config_path = os.path.join(checkpoint_dir, "config.yaml")
-    shutil.copy(config_name, saved_config_path)
-
-    set_seed(config["seed"])
-
-    
-    device = "cuda:0" if torch.cuda.is_available() else "cpu"
-
-    model, _ = clip.load(config["model_path"], device=device)
-    tokenizer = clip.tokenize
-
-    dataset = rsicd_loader(
-        image_dir = config["image_dir"], 
-        json_path = config["json_path"], 
-        text_class = config["txtclasses"],
-        split = config["split"], 
-        num_captions = config["num_captions"],  
-        tokenizer=tokenizer)
-    
-
-    train_dataset, val_dataset = split_dataset(dataset, train_ratio=0.7)
-    
-
-    train_dt = DataLoader(train_dataset, 
-    config["batch_size"], 
-    shuffle=True, 
-    num_workers = config["num_workers"], 
-    pin_memory = True,
-    collate_fn = collate_mixed_advanced)  
-
-    # NOTE for advanced version, I could only read in the B-split since im not valadiing on unsupervised data?
-    val_dt = DataLoader(val_dataset, 
-    config["batch_size"], 
-    shuffle=True, 
-    num_workers = config["num_workers"], 
-    pin_memory = True,
-    collate_fn = collate_mixed_advanced)  
-
-
-
-    # optimizer = torch.optim.Adam(
-    #     model.parameters(),
-    #     lr = config["lr"],
-    #     betas=(0.9, 0.98),
-    #     eps=1e-6,
-    #     weight_decay=config["weight_decay"]
-    # )
-
-    # NOTE Try new optimizer
+def create_optimizer_and_scheduler(
+    model: torch.nn.Module, config: FineTuneConfig, total_steps: int
+) -> tuple[Adafactor, object]:
     optimizer = Adafactor(
-    model.parameters(),
-    scale_parameter=True,
-    relative_step=False,  # We'll do our own scheduler
-    warmup_init=False,
-    lr=config["lr"]  # should be 1e-4
+        model.parameters(),
+        scale_parameter=True,
+        relative_step=False,
+        warmup_init=False,
+        lr=config.learning_rate,
     )
-
-    num_training_steps = config["epochs"] * len(train_dt)
-    num_warmup_steps = int(0.1 * num_training_steps)  # 10% warmup
-
-    lr_scheduler = get_scheduler(
+    scheduler = get_scheduler(
         name="linear",
         optimizer=optimizer,
-        num_warmup_steps=num_warmup_steps,
-        num_training_steps=num_training_steps
+        num_warmup_steps=int(config.warmup_fraction * total_steps),
+        num_training_steps=total_steps,
     )
-
-    # NOTE Investigate statistics of the data
-    #stats = collect_caption_stats(dataset)
-    #print_caption_stats(stats)
+    return optimizer, scheduler
 
 
-    best_val_loss = float("inf")
-    for epoch in range(config["epochs"]):
-        train_stats  = train_one_epoch(model, train_dt, optimizer, lr_scheduler, device)
-        val_stats = validate_one_epoch(model, val_dt, device)
+def prepare_output_dir(output_dir: Path, config_path: Path) -> None:
+    """Create the run directory and retain the exact configuration used."""
+    if output_dir.exists() and not output_dir.is_dir():
+        raise NotADirectoryError(f"Output path exists but is not a directory: {output_dir}")
+    output_dir.mkdir(parents=True, exist_ok=True)
+    shutil.copy2(config_path, output_dir / "config.yaml")
 
 
-        print(f"Epoch {epoch}:")
-        print(f"  Total      Loss: {train_stats['loss']:.4f}")
-        print(f"  Supervised Loss: {train_stats['sup_loss']:.4f}")
-        print(f"  Unsupervised Loss: {train_stats['unsup_loss']:.4f}")
-        print(f"  Img→Txt Sim: {train_stats['sim_img2txt']:.4f}")
-        print(f"  Txt→Img Sim: {train_stats['sim_txt2img']:.4f}")
-        print()
-
-        print("\n")
-        
-        # Logging
-        log_data["epoch"].append(epoch)
-        log_data["train_loss"].append(float(train_stats["loss"]))
-        log_data["train_sup_loss"].append(float(train_stats["sup_loss"]))
-        log_data["train_unsup_loss"].append(float(train_stats["unsup_loss"]))
-        log_data["train_Sim_Img2Txt"].append(float(train_stats["sim_img2txt"]))
-        log_data["train_Sim_Txt2Img"].append(float(train_stats["sim_txt2img"]))
-        log_data["logit_scale"].append(float(train_stats["logit_scale"]))
-        log_data["lr_rate"].append(float(train_stats["lr"]))
-        
-        log_data["val_loss"].append(float(val_stats["loss"]))
-        log_data["val_Sim_Img2Txt"].append(float(val_stats["sim_img2txt"]))
-        log_data["val_Sim_Txt2Img"].append(float(val_stats["sim_txt2img"]))
+def write_metrics(output_dir: Path, metrics: dict[str, object]) -> None:
+    with (output_dir / "metrics.json").open("w", encoding="utf-8") as metrics_file:
+        json.dump(metrics, metrics_file, indent=2)
+        metrics_file.write("\n")
 
 
-        
-        if val_stats["loss"] < best_val_loss:
-            best_val_loss = val_stats["loss"]
-            best_checkpoint_path = os.path.join(checkpoint_dir, "ckp_best.pth")
-            torch.save({
-                'epoch': epoch,
-                'model_state_dict': model.state_dict(),
-                'optimizer_state_dict': optimizer.state_dict(),
-                'train_loss': train_stats['loss'],
-                'val_loss': val_stats['loss'],
-            }, best_checkpoint_path)
-            print(f"✅ Best checkpoint updated at {best_checkpoint_path}")
+def checkpoint_state(
+    model: torch.nn.Module,
+    optimizer: Adafactor,
+    scheduler,
+    epoch: int,
+    best_validation_loss: float,
+    train_metrics: dict[str, float],
+    validation_metrics: dict[str, float],
+) -> dict[str, object]:
+    """Capture all state required for a future reproducible continuation."""
+    state: dict[str, object] = {
+        "epoch": epoch,
+        "best_validation_loss": best_validation_loss,
+        "model_state_dict": model.state_dict(),
+        "optimizer_state_dict": optimizer.state_dict(),
+        "scheduler_state_dict": scheduler.state_dict(),
+        "train_metrics": train_metrics,
+        "validation_metrics": validation_metrics,
+        "python_rng_state": random.getstate(),
+        "numpy_rng_state": np.random.get_state(),
+        "torch_rng_state": torch.get_rng_state(),
+    }
+    if torch.cuda.is_available():
+        state["cuda_rng_state_all"] = torch.cuda.get_rng_state_all()
+    return state
 
-        
-        # Always save last checkpoint
-        if (epoch + 1) == config["epochs"]:
-            last_checkpoint_path = os.path.join(checkpoint_dir, "ckp_last.pth")
-            torch.save({
-                'epoch': epoch,
-                'model_state_dict': model.state_dict(),
-                'optimizer_state_dict': optimizer.state_dict(),
-                'train_loss': train_stats['loss'],
-                'val_loss': val_stats['loss'],
-            }, last_checkpoint_path)
-            print(f"💾 Last checkpoint saved at {last_checkpoint_path}")
 
-    log_path = os.path.join(checkpoint_dir, "metrics_log.yaml")
-    with open(log_path, "w") as f:
-        yaml.dump(dict(log_data), f)
-    print(f"Metrics log updated at {log_path}")
+def verify_last_checkpoint(
+    checkpoint_path: Path,
+    config: FineTuneConfig,
+    total_steps: int,
+) -> int:
+    """Restore the final checkpoint into a fresh, matching local OpenCLIP model."""
+    state = torch.load(checkpoint_path, map_location="cpu", weights_only=False)
+    required_keys = {
+        "epoch",
+        "model_state_dict",
+        "optimizer_state_dict",
+        "scheduler_state_dict",
+        "train_metrics",
+        "validation_metrics",
+    }
+    missing = sorted(required_keys.difference(state))
+    if missing:
+        raise ValueError(f"Checkpoint is missing required state: {', '.join(missing)}")
 
+    restored_model = open_clip.create_model(
+        config.model_name, pretrained=None, device="cpu"
+    )
+    restored_optimizer, restored_scheduler = create_optimizer_and_scheduler(
+        restored_model, config, total_steps
+    )
+    restored_model.load_state_dict(state["model_state_dict"])
+    restored_optimizer.load_state_dict(state["optimizer_state_dict"])
+    restored_scheduler.load_state_dict(state["scheduler_state_dict"])
+    return int(state["epoch"])
+
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--config", type=Path, default=DEFAULT_CONFIG_PATH)
+    parser.add_argument("--device", choices=("auto", "cpu", "cuda"), default="auto")
+    parser.add_argument("--batch-size", type=int, help="Override config batch_size.")
+    parser.add_argument(
+        "--max-train-batches",
+        type=int,
+        help="Limit batches per training epoch; omit for the full training subset.",
+    )
+    parser.add_argument(
+        "--max-validation-batches",
+        type=int,
+        help="Limit validation batches per epoch; omit for the full validation subset.",
+    )
+    parser.add_argument(
+        "--output-dir",
+        type=Path,
+        help="Override config output_dir for run artifacts and checkpoints.",
+    )
+    args = parser.parse_args()
+    for name in ("batch_size", "max_train_batches", "max_validation_batches"):
+        value = getattr(args, name)
+        if value is not None and value <= 0:
+            parser.error(f"--{name.replace('_', '-')} must be positive")
+    return args
+
+
+def main() -> None:
+    args = parse_args()
+    config_path = args.config.resolve()
+    config = load_config(config_path)
+    if args.batch_size is not None:
+        config = replace(config, batch_size=args.batch_size)
+    if args.output_dir is not None:
+        config = replace(config, output_dir=args.output_dir.resolve())
+    prepare_output_dir(config.output_dir, config_path)
+
+    device = resolve_device(args.device)
+    set_seed(config.seed)
+    model, tokenizer, train_transform, validation_transform = load_local_openclip_model(
+        config, device
+    )
+    train_dataset, validation_dataset = build_supervised_train_val_datasets(
+        image_dir=config.image_dir,
+        json_path=config.json_path,
+        train_transform=train_transform,
+        validation_transform=validation_transform,
+        tokenizer=tokenizer,
+        train_fraction=config.supervised_train_fraction,
+        seed=config.seed,
+    )
+    loader_options = {
+        "batch_size": config.batch_size,
+        "num_workers": config.num_workers,
+        "pin_memory": device.type == "cuda",
+        "collate_fn": collate_supervised_captions,
+    }
+    train_loader = DataLoader(train_dataset, shuffle=True, **loader_options)
+    validation_loader = DataLoader(validation_dataset, shuffle=False, **loader_options)
+
+    train_batches = min(len(train_loader), args.max_train_batches or len(train_loader))
+    if train_batches == 0:
+        raise ValueError("No supervised training batches selected")
+    total_steps = config.epochs * train_batches
+    optimizer, scheduler = create_optimizer_and_scheduler(model, config, total_steps)
+
+    metrics: dict[str, object] = {
+        "model_name": config.model_name,
+        "pretrained_tag": config.pretrained_tag,
+        "checkpoint_path": str(config.checkpoint_path),
+        "image_dir": str(config.image_dir),
+        "json_path": str(config.json_path),
+        "device": str(device),
+        "seed": config.seed,
+        "train_images": len(train_dataset),
+        "validation_images": len(validation_dataset),
+        "configured_epochs": config.epochs,
+        "max_train_batches": args.max_train_batches,
+        "max_validation_batches": args.max_validation_batches,
+        "epochs": [],
+    }
+
+    print(f"Model: {config.model_name} / {config.pretrained_tag}")
+    print(f"Checkpoint: {config.checkpoint_path}")
+    print(f"Device: {device}")
+    print(f"Train/validation images: {len(train_dataset)}/{len(validation_dataset)}")
+    best_validation_loss = float("inf")
+    for epoch in range(config.epochs):
+        train_metrics = train_one_epoch(
+            model, train_loader, optimizer, scheduler, device, args.max_train_batches
+        )
+        validation_metrics = validate_one_epoch(
+            model, validation_loader, device, args.max_validation_batches
+        )
+        validation_loss = validation_metrics["loss"]
+        if validation_loss < best_validation_loss:
+            best_validation_loss = validation_loss
+            is_best = True
+        else:
+            is_best = False
+
+        state = checkpoint_state(
+            model,
+            optimizer,
+            scheduler,
+            epoch,
+            best_validation_loss,
+            train_metrics,
+            validation_metrics,
+        )
+        torch.save(state, config.output_dir / "ckp_last.pth")
+        if is_best:
+            torch.save(state, config.output_dir / "ckp_best.pth")
+
+        epoch_record = {
+            "epoch": epoch + 1,
+            "train": train_metrics,
+            "validation": validation_metrics,
+            "is_best": is_best,
+        }
+        metrics["epochs"].append(epoch_record)
+        metrics["best_validation_loss"] = best_validation_loss
+        write_metrics(config.output_dir, metrics)
+        print(
+            f"Epoch {epoch + 1}/{config.epochs}: "
+            f"train_loss={train_metrics['loss']:.6f} "
+            f"validation_loss={validation_loss:.6f} "
+            f"lr={train_metrics['learning_rate']:.8f}"
+        )
+
+    restored_epoch = verify_last_checkpoint(
+        config.output_dir / "ckp_last.pth", config, total_steps
+    )
+    metrics["checkpoint_load_epoch"] = restored_epoch + 1
+    write_metrics(config.output_dir, metrics)
+    print(f"Artifacts: {config.output_dir}")
+    print(f"Checkpoint restore verified for epoch {restored_epoch + 1}")
+
+
+# Deferred: mixed supervised/SimCLR training is intentionally introduced later.
+if __name__ == "__main__":
+    main()
