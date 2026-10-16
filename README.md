@@ -74,3 +74,97 @@ Results: results/open_clip_zeroshot
 ```
 
 Use `python open-clip/main_zeroshot.py --list-pretrained` to list model/tag pairs supported by the installed OpenCLIP version. Listed pairs still need matching local weights and preprocessing suport.
+
+## Running main_finetune.py
+
+`open-clip/main_finetune.py` fine-tunes the configured model on RSICD **image-caption pairs**. Technical details of the implementation is found below. It uses the same manually downloaded checkpoint described in the zero-shot section, as the baseline policy for fine-tuning.
+
+The fine-tuning configuration `finetune_config.yaml` is organized as follows.
+
+| Field | Purpose |
+| --- | --- |
+| `model_name`, `pretrained_tag`, `checkpoint_path` | OpenCLIP architecture, its preprocessing configuration, and the local initialization checkpoint. |
+| `image_dir`, `json_path` | Local RSICD resources. The JSON `train` split is used; JSON `test` remains untouched. |
+| `seed`, `supervised_train_fraction` | Deterministic split settings. The default creates an 80/20 train/validation split with seed 42. |
+| `caption_policy` | Documents the implemented `all_unique` behavior: every distinct caption for an image is used as a positive match. |
+| `batch_size`, `num_workers`, `epochs`, `learning_rate`, `warmup_fraction` | Training settings. The default optimizer is Adafactor with a linear schedule and 10% warmup. |
+| `output_dir` | Default directory for metrics and checkpoints. |
+
+Run a bounded one-epoch smoke test, preferably into a separate output directory:
+
+```bash
+python open-clip/main_finetune.py \
+  --device cuda \
+  --batch-size 1 \
+  --max-train-batches 2 \
+  --max-validation-batches 1 \
+  --output-dir results/open_clip_finetune_smoke
+```
+
+Additional options:
+* Use `--device cpu` when CUDA is unavailable, or for debugging. 
+* The `--max-train-batches` and `--max-validation-batches` flags are optional; omit them to use the full configured subsets. 
+* Use a different config file with `--config path/to/finetune_config.yaml`
+
+To run unrestricted supervised training with the values in the default configuration:
+
+```bash
+python open-clip/main_finetune.py --device cuda
+```
+
+Current scope is supervised image-caption fine-tuning only. The JSON `val` split, mixed supervised/unsupervised training, SimCLR, and checkpoint-resume command-line support are deferred.
+
+### Implementation Details
+
+**Loss:**
+
+For a batch of $B$ images and $N$ captions, let $g(n)\in\{1,\ldots,B\}$ map caption $n$ to its source image. The image and text encoders produce L2-normalized features $v_i$ and $t_n$, respectively. With $s=\exp(\texttt{model.logit\_scale})$, the logits are $z_{ni}=s\,t_n^\top v_i$. Let $P_i=\{n\mid g(n)=i\}$ be all captions belonging to image $i$.
+
+The caption-to-image term uses the source image as its single target:
+
+$$
+\mathcal{L}_{t\rightarrow i} = -\frac{1}{N}\sum_{n=1}^{N}
+\log\frac{\exp(z_{n,g(n)})}{\sum_{j=1}^{B}\exp(z_{nj})}.
+$$
+
+The image-to-caption term assigns equal target probability to every caption of that image:
+
+$$
+\mathcal{L}_{i\rightarrow t} = -\frac{1}{B}\sum_{i=1}^{B}
+\sum_{n\in P_i}\frac{1}{|P_i|}
+\log\frac{\exp(z_{ni})}{\sum_{m=1}^{N}\exp(z_{mi})}.
+$$
+
+The optimized supervised loss is:
+
+$$
+\mathcal{L}=\frac{1}{2}\left(\mathcal{L}_{t\rightarrow i}+\mathcal{L}_{i\rightarrow t}\right).
+$$
+
+> TODO: Implement and document a fine-tuning setup that can make use of the caption-less images for fine-tuning.
+
+#### Additional implementation details
+
+**Captions:** Each image's tokenized captions are deduplicated while preserving first-seen order; the collate function flattens them and emits the caption-to-image index map \(g\). For example, if RSICD lists captions as: 
+```
+1. "an airport with runways"
+2. "aerial view of an airport"
+3. "an airport with runways"   # duplicate
+4. "airport surrounded by roads"
+```
+the loader keeps 
+```
+1. "an airport with runways"
+2. "aerial view of an airport"
+3. "airport surrounded by roads"
+```
+
+> TODO: Implement and document alternative caption-handling methods
+
+**Optimization:** All model parameters remain trainable. Adafactor is configured with `scale_parameter=True`, `relative_step=False`, `warmup_init=False`, and the configured learning rate (default `1e-4`). The linear scheduler has `floor(warmup_fraction * total_training_steps)` warmup steps; `total_training_steps` accounts for `epochs` and any `--max-train-batches` limit. After every optimizer update, the logit-scale parameter is clamped to \([0, 4.6052]\), i.e. its exponential is at most approximately 100.
+
+**Metrics:** Per-epoch mean loss, positive-pair logits, logit scale, learning rate, and processed-batch count are written to `metrics.json`.
+
+**Seeding:** Python, NumPy, PyTorch, and available CUDA RNGs are seeded from `seed`. 
+
+**Checkpoint:** `ckp_best.pth` is selected by validation loss, while `ckp_last.pth` is always written. Both include model, optimizer, scheduler, epoch, metrics, and RNG states; the run verifies that the final checkpoint can be restored into a fresh matching model.
