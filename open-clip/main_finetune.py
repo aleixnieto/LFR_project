@@ -1,9 +1,12 @@
 """Supervised OpenCLIP image-caption fine-tuning on the RSICD JSON train split."""
 
 import argparse
+import contextlib
 import json
+import logging
 import random
 import shutil
+import sys
 from dataclasses import dataclass, replace
 from pathlib import Path
 
@@ -347,9 +350,14 @@ def verify_last_checkpoint(
     if missing:
         raise ValueError(f"Checkpoint is missing required state: {', '.join(missing)}")
 
-    restored_model = open_clip.create_model(
-        config.model_name, pretrained=None, device="cpu"
-    )
+    previous_disable_level = logging.root.manager.disable
+    logging.disable(logging.WARNING)
+    try:
+        restored_model = open_clip.create_model(
+            config.model_name, pretrained=None, device="cpu"
+        )
+    finally:
+        logging.disable(previous_disable_level)
     restored_optimizer, restored_scheduler = create_optimizer_and_scheduler(
         restored_model, config, total_steps
     )
@@ -358,11 +366,33 @@ def verify_last_checkpoint(
     restored_scheduler.load_state_dict(state["scheduler_state_dict"])
     return int(state["epoch"])
 
+
+class TeeStream:
+    """Mirror text to the terminal and a line-flushed run log."""
+
+    def __init__(self, terminal, log_file) -> None:
+        self.terminal = terminal
+        self.log_file = log_file
+
+    def write(self, text: str) -> int:
+        self.terminal.write(text)
+        self.log_file.write(text)
+        self.log_file.flush()
+        return len(text)
+
+    def flush(self) -> None:
+        self.terminal.flush()
+        self.log_file.flush()
+
+    def __getattr__(self, name: str):
+        return getattr(self.terminal, name)
+
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--config", type=Path, default=DEFAULT_CONFIG_PATH)
     parser.add_argument("--device", choices=("auto", "cpu", "cuda"), default="auto")
     parser.add_argument("--batch-size", type=int, help="Override config batch_size.")
+    parser.add_argument("--epochs", type=int, help="Override config epochs.")
     parser.add_argument(
         "--max-train-batches",
         type=int,
@@ -379,23 +409,14 @@ def parse_args() -> argparse.Namespace:
         help="Override config output_dir for run artifacts and checkpoints.",
     )
     args = parser.parse_args()
-    for name in ("batch_size", "max_train_batches", "max_validation_batches"):
+    for name in ("batch_size", "epochs", "max_train_batches", "max_validation_batches"):
         value = getattr(args, name)
         if value is not None and value <= 0:
             parser.error(f"--{name.replace('_', '-')} must be positive")
     return args
 
 
-def main() -> None:
-    args = parse_args()
-    config_path = args.config.resolve()
-    config = load_config(config_path)
-    if args.batch_size is not None:
-        config = replace(config, batch_size=args.batch_size)
-    if args.output_dir is not None:
-        config = replace(config, output_dir=args.output_dir.resolve())
-    prepare_output_dir(config.output_dir, config_path)
-
+def run_finetune(args: argparse.Namespace, config: FineTuneConfig) -> None:
     device = resolve_device(args.device)
     set_seed(config.seed)
     model, tokenizer, train_transform, validation_transform = load_local_openclip_model(
@@ -497,6 +518,26 @@ def main() -> None:
     print(f"Artifacts: {config.output_dir}")
     print(f"Checkpoint restore verified for epoch {restored_epoch + 1}")
 
+
+def main() -> None:
+    args = parse_args()
+    config_path = args.config.resolve()
+    config = load_config(config_path)
+    if args.batch_size is not None:
+        config = replace(config, batch_size=args.batch_size)
+    if args.epochs is not None:
+        config = replace(config, epochs=args.epochs)
+    if args.output_dir is not None:
+        config = replace(config, output_dir=args.output_dir.resolve())
+    prepare_output_dir(config.output_dir, config_path)
+
+    log_path = config.output_dir / "train.log"
+    with log_path.open("a", encoding="utf-8") as log_file:
+        stdout = TeeStream(sys.stdout, log_file)
+        stderr = TeeStream(sys.stderr, log_file)
+        with contextlib.redirect_stdout(stdout), contextlib.redirect_stderr(stderr):
+            print(f"Writing terminal output to: {log_path}")
+            run_finetune(args, config)
 
 # Deferred: mixed supervised/SimCLR training is intentionally introduced later.
 if __name__ == "__main__":
