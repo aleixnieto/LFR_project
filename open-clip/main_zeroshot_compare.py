@@ -221,6 +221,44 @@ def save_model_comparison_plot(summaries: list[dict[str, object]], output_path: 
     figure.savefig(output_path, dpi=150)
     plt.close(figure)
 
+def save_confusion_matrices_comparison(
+    matrices: list[tuple[str, list[list[int]]]],
+    class_names: list[str],
+    output_path: Path,
+) -> None:
+    columns = min(3, len(matrices))
+    rows = (len(matrices) + columns - 1) // columns
+    figure, axes = plt.subplots(
+        rows, columns, figsize=(6 * columns, 6 * rows), squeeze=False, layout="constrained"
+    )
+    flat_axes = axes.flat
+    maximum = max(int(np.asarray(matrix).max()) for _, matrix in matrices)
+    displays = []
+
+    for axis, (label, matrix) in zip(flat_axes, matrices):
+        display = ConfusionMatrixDisplay(
+            confusion_matrix=np.asarray(matrix), display_labels=class_names
+        )
+        display.plot(
+            ax=axis,
+            cmap="Blues",
+            colorbar=False,
+            include_values=False,
+            im_kw={"vmin": 0, "vmax": maximum},
+        )
+        axis.set_title(label)
+        plt.setp(axis.get_xticklabels(), rotation=45, ha="right", fontsize=7)
+        plt.setp(axis.get_yticklabels(), fontsize=7)
+        displays.append(display)
+
+    for axis in flat_axes:
+        if not axis.has_data():
+            axis.set_visible(False)
+    figure.colorbar(displays[0].im_, ax=axes.ravel().tolist(), shrink=0.8, label="Count")
+    figure.suptitle("Confusion-matrix comparison", y=1.01)
+    figure.savefig(output_path, dpi=150, bbox_inches="tight")
+    plt.close(figure)
+
 def configure_logger(output_dir: Path) -> logging.Logger:
     logger = logging.getLogger("open_clip_zeroshot_compare")
     logger.handlers.clear()
@@ -292,6 +330,7 @@ def main() -> None:
     logger.info("Device: %s", device)
     logger.info("Selected models: %s", ", ".join(model.label for model in models))
     summaries: list[dict[str, object]] = []
+    confusion_matrices: list[tuple[str, list[list[int]]]] = []
 
     for selection in models:
         logger.info(
@@ -345,6 +384,7 @@ def main() -> None:
         }
         write_results(model_dir, metrics, predictions)
         save_confusion_matrix(matrix, dataset.class_names, model_dir / "confusion_matrix.png", selection.label)
+        confusion_matrices.append((selection.label, matrix))
         summaries.append({key: metrics[key] for key in ("label", "checkpoint_path", "checkpoint_type", "num_samples", "accuracy", "weighted_precision", "weighted_recall", "weighted_f1")})
         print(f"  accuracy={metrics['accuracy']:.4f} weighted_f1={metrics['weighted_f1']:.4f}")
         del model
@@ -356,7 +396,14 @@ def main() -> None:
         summary_file.write("\n")
     comparison_plot_path = output_dir / "model_comparison.png"
     save_model_comparison_plot(summaries, comparison_plot_path)
-    logger.info("Comparison complete. Summary: %s; plot: %s", output_dir / "summary.json", comparison_plot_path)
+    confusion_comparison_path = output_dir / "confusion_matrices_comparison.png"
+    save_confusion_matrices_comparison(confusion_matrices, dataset.class_names, confusion_comparison_path)
+    logger.info(
+        "Comparison complete. Summary: %s; metrics plot: %s; confusion plot: %s",
+        output_dir / "summary.json",
+        comparison_plot_path,
+        confusion_comparison_path,
+    )
 
 
 if __name__ == "__main__":
