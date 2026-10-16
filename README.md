@@ -82,9 +82,9 @@ Use `python open-clip/main_zeroshot.py --list-pretrained` to list model/tag pair
 `checkpoint_type: openclip` is for a raw OpenCLIP pretrained weights file (such as the baseline `.bin`). `checkpoint_type: finetune` is for this project’s wrapped
 fine-tuning checkpoint (such as `ckp_best.pth`).
 
-The output contains `summary.json` and an aggregate `model_comparison.png`, plus per-model `metrics.json`, `predictions.json`, per-class F1 values, and `confusion_matrix.png`.
+The output contains `summary.json` and an aggregate `model_comparison.png`, plus per-model `metrics.json`, `predictions.json`, per-class F1 values, individual `confusion_matrix.png` files, and a shared `confusion_matrices_comparison.png`.
 
-
+The config looks like this:
 ```yaml
 image_dir: ../RSICD_images
 json_path: ../dataset_rsicd.json
