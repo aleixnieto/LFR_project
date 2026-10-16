@@ -21,7 +21,7 @@ from transformers import Adafactor, get_scheduler
 from dataloader import build_supervised_train_val_datasets, collate_supervised_captions
 
 
-DEFAULT_CONFIG_PATH = Path(__file__).with_name("finetune_config.yaml")
+DEFAULT_CONFIG_PATH = Path(__file__).with_name("configs") / "finetune_config.yaml"
 
 
 @dataclass(frozen=True)

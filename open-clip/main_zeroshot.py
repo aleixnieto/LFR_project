@@ -23,7 +23,7 @@ PROMPT_TEMPLATES = (
     "A geospatial view depicting a {}",
     "An image taken from above showing a {}",
 )
-DEFAULT_CONFIG_PATH = Path(__file__).with_name("zeroshot_config.yaml")
+DEFAULT_CONFIG_PATH = Path(__file__).with_name("configs") / "zeroshot_config.yaml"
 DEFAULT_OUTPUT_DIR = Path("results/open_clip_zeroshot")
 
 

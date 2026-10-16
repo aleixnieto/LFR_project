@@ -35,7 +35,7 @@ LFR_project/
 
 ## Running main_zeroshot.py
 
-The evaluator `open-clip/main_zeroshot.py` reads both its model selection and local RSICD resource locations from `open-clip/zeroshot_config.yaml`. The configuration binds:
+The evaluator `main_zeroshot.py` reads both its model selection and local RSICD resource locations from `zeroshot_config.yaml`. The configuration binds:
 
 - `model_name`: the OpenCLIP architecture;
 - `pretrained_tag`: its registered preprocessing configuration;
@@ -46,11 +46,11 @@ To run the zero-shot evaluation, start by downloading a checkpoint into the weig
 
 1. Create the weights directory the first time: `mkdir -p weights/open_clip`
 
-2. Download the checkpoint do the created folder and configure the `zeroshot_config.yaml` according to the table below (model dependent). By default, the repo is set up to run wiht the `ViT-B-32` / `laion2b_s34b_b79k` model.
+2. Download the checkpoint do the created folder and configure `zeroshot_config.yaml` according to the table below (model dependent). By default, the repo is set up to run wiht the `ViT-B-32` / `laion2b_s34b_b79k` model.
 
 | Model / checkpoint | YAML configuration values | Manual download command |
 | --- | --- | --- |
-| `ViT-B-32` / `laion2b_s34b_b79k` (default) | `model_name: ViT-B-32`<br>`pretrained_tag: laion2b_s34b_b79k`<br>`checkpoint_path: ../weights/open_clip/ViT-B-32-laion2b_s34b_b79k.bin` | `curl -L https://huggingface.co/laion/CLIP-ViT-B-32-laion2B-s34B-b79K/resolve/main/open_clip_pytorch_model.bin -o weights/open_clip/ViT-B-32-laion2b_s34b_b79k.bin` |
+| `ViT-B-32` / `laion2b_s34b_b79k` (default) | `model_name: ViT-B-32`<br>`pretrained_tag: laion2b_s34b_b79k`<br>`checkpoint_path: ../../weights/open_clip/ViT-B-32-laion2b_s34b_b79k.bin` | `curl -L https://huggingface.co/laion/CLIP-ViT-B-32-laion2B-s34B-b79K/resolve/main/open_clip_pytorch_model.bin -o weights/open_clip/ViT-B-32-laion2b_s34b_b79k.bin` |
 
 > TODO: Add validated model/tag/configuration/download entries for additional OpenCLIP architectures together with code support for more preprocessing options.
 
@@ -77,7 +77,7 @@ Use `python open-clip/main_zeroshot.py --list-pretrained` to list model/tag pair
 
 ### Comparing selected zero-shot models
 
-`main_zeroshot_compare.py` evaluates and compare the models listed in `zeroshot_compare_config.yaml` on the configured test dataset.
+`main_zeroshot_compare.py` evaluates and compares the models listed in `open-clip/configs/zeroshot_compare_config.yaml` on the configured test dataset.
 
 `checkpoint_type: openclip` is for a raw OpenCLIP pretrained weights file (such as the baseline `.bin`). `checkpoint_type: finetune` is for this project’s wrapped
 fine-tuning checkpoint (such as `ckp_best.pth`).
@@ -86,22 +86,22 @@ The output contains `summary.json` and an aggregate `model_comparison.png`, plus
 
 The config looks like this:
 ```yaml
-image_dir: ../RSICD_images
-json_path: ../dataset_rsicd.json
-class_dir: ../txtclasses_rsicd
+image_dir: ../../RSICD_images
+json_path: ../../dataset_rsicd.json
+class_dir: ../../txtclasses_rsicd
 
 models:
   - label: baseline
     model_name: ViT-B-32
     pretrained_tag: laion2b_s34b_b79k
     checkpoint_type: openclip
-    checkpoint_path: ../weights/open_clip/ViT-B-32-laion2b_s34b_b79k.bin
+    checkpoint_path: ../../weights/open_clip/ViT-B-32-laion2b_s34b_b79k.bin
 
   - label: fine_tuned
     model_name: ViT-B-32
     pretrained_tag: laion2b_s34b_b79k
     checkpoint_type: finetune
-    checkpoint_path: ../results/my_finetune_run/ckp_best.pth
+    checkpoint_path: ../../results/my_finetune_run/ckp_best.pth
 ```
 
 Run the configured comparison:
@@ -117,7 +117,7 @@ Additional Options:
 
 `open-clip/main_finetune.py` fine-tunes the configured model on RSICD **image-caption pairs**. Technical details of the implementation is found below. It uses the same manually downloaded checkpoint described in the zero-shot section, as the baseline policy for fine-tuning.
 
-The fine-tuning configuration `finetune_config.yaml` is organized as follows.
+The fine-tuning configuration `open-clip/configs/finetune_config.yaml` is organized as follows.
 
 | Field | Purpose |
 | --- | --- |

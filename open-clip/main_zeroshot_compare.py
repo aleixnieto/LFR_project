@@ -27,7 +27,7 @@ from main_zeroshot import (
 )
 
 
-DEFAULT_MODELS_CONFIG_PATH = Path(__file__).with_name("zeroshot_compare_config.yaml")
+DEFAULT_MODELS_CONFIG_PATH = Path(__file__).with_name("configs") / "zeroshot_compare_config.yaml"
 DEFAULT_OUTPUT_DIR = Path("evaluations/open_clip_zeroshot_comparison")
 
 
