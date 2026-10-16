@@ -168,3 +168,23 @@ the loader keeps
 **Seeding:** Python, NumPy, PyTorch, and available CUDA RNGs are seeded from `seed`. 
 
 **Checkpoint:** `ckp_best.pth` is selected by validation loss, while `ckp_last.pth` is always written. Both include model, optimizer, scheduler, epoch, metrics, and RNG states; the run verifies that the final checkpoint can be restored into a fresh matching model.
+
+### Plotting fine-tuning progress
+
+Use `open-clip/plotting_utils.py` to create headless PNG charts from the
+fine-tuning `metrics.json`. It can inspect a completed run or a run still
+training, since metrics are updated after every epoch:
+
+```bash
+python open-clip/plotting_utils.py results/open_clip_finetune_smoke \
+  --output-dir results/open_clip_finetune_smoke/plots
+```
+
+The command writes loss, positive text-to-image and image-to-text logits,
+logit scale, and learning-rate charts. To compare runs, pass additional run
+directories (or direct `metrics.json` paths) and repeat `--label`:
+
+```bash
+python open-clip/plotting_utils.py results/run_a results/run_b \
+  --label baseline --label tuned --output-dir results/run_comparison_plots
+```
