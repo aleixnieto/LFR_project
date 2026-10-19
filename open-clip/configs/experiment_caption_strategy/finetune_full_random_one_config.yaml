@@ -15,10 +15,12 @@ supervised_train_fraction: 0.8
 caption_policy: random_one
 text_to_image_weighting: per_caption
 
-# These controls are identical across all three experiment variants.
-batch_size: 32
+# Training recipe selected by the final outcome ablation.
+batch_size: 16
 num_workers: 4
-epochs: 5
-learning_rate: 0.00003
+epochs: 8
+learning_rate: 0.00001
+optimizer: adamw
+weight_decay: 0.1
 warmup_fraction: 0.1
-output_dir: ../../../results/open_clip_finetune_random_one_per_caption
+output_dir: ../../../results/experiment_caption_strategy/open_clip_finetune_random_one_per_caption
