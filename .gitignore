@@ -1,4 +1,6 @@
 *__pycache__*
+results/
+evaluations/
 
 # ignore dataset files
 dataset_rsicd.json

@@ -1,12 +1,13 @@
 # Local OpenCLIP initialization. Relative paths resolve from this file.
 model_name: ViT-B-32
 pretrained_tag: laion2b_s34b_b79k
-checkpoint_path: ../weights/open_clip/ViT-B-32-laion2b_s34b_b79k.bin
+checkpoint_path: ../../weights/open_clip/ViT-B-32-laion2b_s34b_b79k.bin
 
 # Captioned RSICD data for the supervised baseline.
-# Uses the train split spec. in dataset_rsicd.json (portion wiht image+text data)
-image_dir: ../RSICD_images 
-json_path: ../dataset_rsicd.json
+# Uses the val split (according to assignment instructions) in dataset_rsicd.json (the captioned source subset)
+image_dir: ../../RSICD_images 
+json_path: ../../dataset_rsicd.json
+dataset_split: val
 seed: 42
 supervised_train_fraction: 0.8 # remaining 20% for validation
 caption_policy: all_unique
@@ -17,6 +18,6 @@ num_workers: 0
 epochs: 1
 learning_rate: 0.0001
 warmup_fraction: 0.1
-output_dir: ../results/open_clip_finetune
+output_dir: ../../results/open_clip_finetune
 max_train_batches: 2
 max_validation_batches: 1

@@ -50,7 +50,7 @@ def _load_transformed_image(image_dir: Path, filename: str, transform: Callable)
 
 
 class RSICDZeroShotDataset(Dataset):
-    """RSICD test split for zero-shot classification.
+    """A configured RSICD split for zero-shot classification.
 
     Labels are loaded once from the class-list files, rather than searched for
     each image access. ``transform`` is supplied by the caller so the dataset
@@ -63,6 +63,7 @@ class RSICDZeroShotDataset(Dataset):
         json_path: str | Path,
         class_dir: str | Path,
         transform: Callable,
+        split: str,
     ) -> None:
         self.image_dir, self.json_path = _validate_rsicd_paths(image_dir, json_path)
         self.class_dir = Path(class_dir)
@@ -76,9 +77,9 @@ class RSICDZeroShotDataset(Dataset):
             raise ValueError(f"No class-list files found in: {self.class_dir}")
 
         self.filename_to_class = self._build_filename_to_class()
-        self.images_info = _load_rsicd_split(self.json_path, "test")
+        self.images_info = _load_rsicd_split(self.json_path, split)
         if not self.images_info:
-            raise ValueError(f"No test-split images found in: {self.json_path}")
+            raise ValueError(f"No {split!r}-split images found in: {self.json_path}")
 
         self._validate_test_images()
 
@@ -192,15 +193,16 @@ def build_supervised_train_val_datasets(
     tokenizer: Callable,
     train_fraction: float,
     seed: int,
+    source_split: str,
 ) -> tuple[RSICDSupervisedDataset, RSICDSupervisedDataset]:
-    """Split captioned JSON ``train`` records deterministically for fine-tuning."""
+    """Split one captioned JSON source split for fine-tuning."""
     image_dir, json_path = _validate_rsicd_paths(image_dir, json_path)
     if not 0 < train_fraction < 1:
         raise ValueError("train_fraction must be strictly between 0 and 1")
 
-    records = _load_rsicd_split(json_path, "train")
+    records = _load_rsicd_split(json_path, source_split)
     if len(records) < 2:
-        raise ValueError("RSICD JSON train split must contain at least two records")
+        raise ValueError(f"RSICD JSON {source_split!r} split must contain at least two records")
 
     generator = torch.Generator().manual_seed(seed)
     indices = torch.randperm(len(records), generator=generator).tolist()
