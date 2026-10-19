@@ -11,6 +11,7 @@ dataset_split: val
 seed: 42
 supervised_train_fraction: 0.8 # remaining 20% for validation
 caption_policy: all_unique
+text_to_image_weighting: per_caption
 
 # Training and bounded smoke-run settings used by later patches.
 batch_size: 32
