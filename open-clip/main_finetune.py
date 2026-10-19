@@ -2,6 +2,7 @@
 
 import argparse
 import contextlib
+import hashlib
 import json
 import logging
 import random
@@ -18,7 +19,11 @@ import yaml
 from torch.utils.data import DataLoader
 from transformers import Adafactor, get_scheduler
 
-from dataloader import build_supervised_train_val_datasets, collate_supervised_captions
+from dataloader import (
+    CAPTION_POLICIES,
+    build_supervised_train_val_datasets,
+    collate_supervised_captions,
+)
 
 
 DEFAULT_CONFIG_PATH = Path(__file__).with_name("configs") / "finetune_config.yaml"
@@ -32,6 +37,7 @@ class FineTuneConfig:
     image_dir: Path
     json_path: Path
     dataset_split: str
+    caption_policy: str
     seed: int
     supervised_train_fraction: float
     batch_size: int
@@ -67,6 +73,7 @@ def load_config(config_path: Path) -> FineTuneConfig:
         "image_dir",
         "json_path",
         "dataset_split",
+        "caption_policy",
         "output_dir",
     )
     missing = [key for key in required_strings if not isinstance(values.get(key), str)]
@@ -83,6 +90,12 @@ def load_config(config_path: Path) -> FineTuneConfig:
         warmup_fraction = float(values["warmup_fraction"])
     except (KeyError, TypeError, ValueError) as error:
         raise ValueError("Fine-tuning config has invalid numeric settings") from error
+    caption_policy = values["caption_policy"]
+    if caption_policy not in CAPTION_POLICIES:
+        choices = ", ".join(sorted(CAPTION_POLICIES))
+        raise ValueError(
+            f"caption_policy must be one of: {choices}; got {caption_policy!r}"
+        )
     if not 0 < train_fraction < 1:
         raise ValueError("supervised_train_fraction must be strictly between zero and one")
     if batch_size <= 0 or num_workers < 0 or epochs <= 0 or learning_rate <= 0:
@@ -97,6 +110,7 @@ def load_config(config_path: Path) -> FineTuneConfig:
         image_dir=resolve_config_path(config_path, values["image_dir"]),
         json_path=resolve_config_path(config_path, values["json_path"]),
         dataset_split=values["dataset_split"],
+        caption_policy=caption_policy,
         seed=seed,
         supervised_train_fraction=train_fraction,
         batch_size=batch_size,
@@ -216,6 +230,12 @@ def mean_epoch_statistics(statistics: list[dict[str, float]]) -> dict[str, float
     return {key: sum(item[key] for item in statistics) / len(statistics) for key in keys}
 
 
+def hash_filename_order(filenames: list[str]) -> str:
+    """Hash an observed image order without storing dataset filenames."""
+    payload = "\n".join(filenames).encode("utf-8")
+    return hashlib.sha256(payload).hexdigest()
+
+
 def train_one_epoch(
     model: torch.nn.Module,
     data_loader: DataLoader,
@@ -223,13 +243,17 @@ def train_one_epoch(
     scheduler,
     device: torch.device,
     max_batches: int | None,
-) -> dict[str, float]:
+) -> dict[str, object]:
     """Fine-tune every OpenCLIP parameter for one supervised epoch."""
     model.train()
     batch_statistics: list[dict[str, float]] = []
+    processed_filenames: list[str] = []
+    processed_captions = 0
     for batch_index, batch in enumerate(data_loader):
         if max_batches is not None and batch_index >= max_batches:
             break
+        processed_filenames.extend(batch["filenames"])
+        processed_captions += int(batch["texts"].shape[0])
         optimizer.zero_grad(set_to_none=True)
         loss, statistics = supervised_contrastive_loss(
             model, *move_batch_to_device(batch, device)
@@ -246,6 +270,9 @@ def train_one_epoch(
     metrics = mean_epoch_statistics(batch_statistics)
     metrics["learning_rate"] = float(optimizer.param_groups[0]["lr"])
     metrics["batches"] = float(len(batch_statistics))
+    metrics["images"] = len(processed_filenames)
+    metrics["captions"] = processed_captions
+    metrics["image_order_sha256"] = hash_filename_order(processed_filenames)
     return metrics
 
 
@@ -434,15 +461,26 @@ def run_finetune(args: argparse.Namespace, config: FineTuneConfig) -> None:
         train_fraction=config.supervised_train_fraction,
         seed=config.seed,
         source_split=config.dataset_split,
+        train_caption_policy=config.caption_policy,
     )
     loader_options = {
         "batch_size": config.batch_size,
         "num_workers": config.num_workers,
         "pin_memory": device.type == "cuda",
         "collate_fn": collate_supervised_captions,
+        "drop_last": False,
+        "persistent_workers": False,
     }
-    train_loader = DataLoader(train_dataset, shuffle=True, **loader_options)
-    validation_loader = DataLoader(validation_dataset, shuffle=False, **loader_options)
+    shuffle_generator = torch.Generator().manual_seed(config.seed)
+    train_loader = DataLoader(
+        train_dataset,
+        shuffle=True,
+        generator=shuffle_generator,
+        **loader_options,
+    )
+    validation_loader = DataLoader(
+        validation_dataset, shuffle=False, **loader_options
+    )
 
     train_batches = min(len(train_loader), args.max_train_batches or len(train_loader))
     if train_batches == 0:
@@ -458,6 +496,10 @@ def run_finetune(args: argparse.Namespace, config: FineTuneConfig) -> None:
         "json_path": str(config.json_path),
         "device": str(device),
         "seed": config.seed,
+        "caption_policy": config.caption_policy,
+        "validation_caption_policy": "all_unique",
+        "drop_last": False,
+        "persistent_workers": False,
         "train_images": len(train_dataset),
         "validation_images": len(validation_dataset),
         "configured_epochs": config.epochs,
@@ -469,9 +511,11 @@ def run_finetune(args: argparse.Namespace, config: FineTuneConfig) -> None:
     print(f"Model: {config.model_name} / {config.pretrained_tag}")
     print(f"Checkpoint: {config.checkpoint_path}")
     print(f"Device: {device}")
+    print(f"Training caption policy: {config.caption_policy}")
     print(f"Train/validation images: {len(train_dataset)}/{len(validation_dataset)}")
     best_validation_loss = float("inf")
     for epoch in range(config.epochs):
+        train_dataset.set_epoch(epoch)
         train_metrics = train_one_epoch(
             model, train_loader, optimizer, scheduler, device, args.max_train_batches
         )

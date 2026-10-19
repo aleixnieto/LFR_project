@@ -20,6 +20,9 @@ import os
 from utils import _search_class, tokenize_texts, check_duplicates
 
 
+CAPTION_POLICIES = frozenset({"all_unique", "random_one"})
+
+
 def _validate_rsicd_paths(
     image_dir: str | Path, json_path: str | Path
 ) -> tuple[Path, Path]:
@@ -137,16 +140,27 @@ class RSICDSupervisedDataset(Dataset):
         records: list[dict],
         transform: Callable,
         tokenizer: Callable,
+        caption_policy: str = "all_unique",
+        sampling_seed: int = 0,
     ) -> None:
         self.image_dir = Path(image_dir)
         self.transform = transform
         self.tokenizer = tokenizer
         self.records = records
+        self.caption_policy = caption_policy
+        self.sampling_seed = sampling_seed
+        self.epoch = 0
 
         if not self.image_dir.is_dir():
             raise FileNotFoundError(f"RSICD image directory does not exist: {self.image_dir}")
         if not self.records:
             raise ValueError("Supervised RSICD dataset has no records")
+        if self.caption_policy not in CAPTION_POLICIES:
+            choices = ", ".join(sorted(CAPTION_POLICIES))
+            raise ValueError(
+                f"Unsupported caption_policy {self.caption_policy!r}; "
+                f"choose from: {choices}"
+            )
 
         self.filenames: list[str] = []
         self.caption_tokens: list[torch.Tensor] = []
@@ -178,11 +192,30 @@ class RSICDSupervisedDataset(Dataset):
     def __len__(self) -> int:
         return len(self.records)
 
+    def set_epoch(self, epoch: int) -> None:
+        """Select the deterministic random-caption schedule for one epoch."""
+        if epoch < 0:
+            raise ValueError("epoch cannot be negative")
+        self.epoch = epoch
+
+    def selected_caption_tokens(self, idx: int) -> torch.Tensor:
+        """Return all captions or one stateless, seed-controlled sample."""
+        tokens = self.caption_tokens[idx]
+        if self.caption_policy == "all_unique":
+            return tokens
+
+        sample_seed = self.sampling_seed + self.epoch * len(self) + idx
+        generator = torch.Generator().manual_seed(sample_seed)
+        caption_index = torch.randint(
+            tokens.shape[0], (1,), generator=generator
+        ).item()
+        return tokens[caption_index:caption_index + 1]
+
     def __getitem__(self, idx: int):
         image_tensor = _load_transformed_image(
             self.image_dir, self.filenames[idx], self.transform
         )
-        return image_tensor, self.caption_tokens[idx], self.filenames[idx]
+        return image_tensor, self.selected_caption_tokens(idx), self.filenames[idx]
 
 
 def build_supervised_train_val_datasets(
@@ -194,6 +227,7 @@ def build_supervised_train_val_datasets(
     train_fraction: float,
     seed: int,
     source_split: str,
+    train_caption_policy: str = "all_unique",
 ) -> tuple[RSICDSupervisedDataset, RSICDSupervisedDataset]:
     """Split one captioned JSON source split for fine-tuning."""
     image_dir, json_path = _validate_rsicd_paths(image_dir, json_path)
@@ -211,8 +245,22 @@ def build_supervised_train_val_datasets(
     validation_records = [records[index] for index in indices[train_size:]]
 
     return (
-        RSICDSupervisedDataset(image_dir, train_records, train_transform, tokenizer),
-        RSICDSupervisedDataset(image_dir, validation_records, validation_transform, tokenizer),
+        RSICDSupervisedDataset(
+            image_dir,
+            train_records,
+            train_transform,
+            tokenizer,
+            caption_policy=train_caption_policy,
+            sampling_seed=seed,
+        ),
+        RSICDSupervisedDataset(
+            image_dir,
+            validation_records,
+            validation_transform,
+            tokenizer,
+            caption_policy="all_unique",
+            sampling_seed=seed,
+        ),
     )
 
 
