@@ -224,6 +224,16 @@ reported here includes both effects. With only three replicates, treat the
 comparison as confirmation of the observed trend rather than a formal
 significance test.
 
+The canonical selected configuration is `final_outcome.yaml`. It uses seed 42
+as the reproducible default and writes to
+`results/finetune_ablations/final_outcome`. Run it with:
+
+```bash
+python open-clip/main_finetune.py \
+  --config open-clip/configs/ablations/final_outcome.yaml \
+  --device cuda
+```
+
 ## Checkpoint limitation
 
 The trainer currently retains only `ckp_best.pth` according to validation loss
