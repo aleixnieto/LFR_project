@@ -2,6 +2,7 @@
 # Paths are relative to this configuration file.
 image_dir: ../../RSICD_images
 json_path: ../../dataset_rsicd.json
+dataset_split: test
 class_dir: ../../txtclasses_rsicd
 
 # Evaluate only the models listed here; the evaluator never scans all run folders.

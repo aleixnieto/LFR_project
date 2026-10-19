@@ -1,4 +1,4 @@
-"""Supervised OpenCLIP image-caption fine-tuning on the RSICD JSON train split."""
+"""Supervised OpenCLIP image-caption fine-tuning on a configured RSICD split."""
 
 import argparse
 import contextlib
@@ -31,6 +31,7 @@ class FineTuneConfig:
     checkpoint_path: Path
     image_dir: Path
     json_path: Path
+    dataset_split: str
     seed: int
     supervised_train_fraction: float
     batch_size: int
@@ -65,6 +66,7 @@ def load_config(config_path: Path) -> FineTuneConfig:
         "checkpoint_path",
         "image_dir",
         "json_path",
+        "dataset_split",
         "output_dir",
     )
     missing = [key for key in required_strings if not isinstance(values.get(key), str)]
@@ -94,6 +96,7 @@ def load_config(config_path: Path) -> FineTuneConfig:
         checkpoint_path=resolve_config_path(config_path, values["checkpoint_path"]),
         image_dir=resolve_config_path(config_path, values["image_dir"]),
         json_path=resolve_config_path(config_path, values["json_path"]),
+        dataset_split=values["dataset_split"],
         seed=seed,
         supervised_train_fraction=train_fraction,
         batch_size=batch_size,
@@ -430,6 +433,7 @@ def run_finetune(args: argparse.Namespace, config: FineTuneConfig) -> None:
         tokenizer=tokenizer,
         train_fraction=config.supervised_train_fraction,
         seed=config.seed,
+        source_split=config.dataset_split,
     )
     loader_options = {
         "batch_size": config.batch_size,

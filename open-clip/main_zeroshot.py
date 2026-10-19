@@ -39,6 +39,7 @@ class DatasetConfig:
     image_dir: Path
     json_path: Path
     class_dir: Path
+    dataset_split: str
 
 
 def load_config_values(config_path: Path) -> dict[str, object]:
@@ -81,11 +82,12 @@ def load_model_config(config_path: Path) -> ModelConfig:
 def load_dataset_config(config_path: Path) -> DatasetConfig:
     """Load local RSICD resource paths from YAML."""
     values = load_config_values(config_path)
-    require_config_strings(values, "image_dir", "json_path", "class_dir")
+    require_config_strings(values, "image_dir", "json_path", "class_dir", "dataset_split")
     return DatasetConfig(
         image_dir=resolve_config_path(config_path, values["image_dir"]),
         json_path=resolve_config_path(config_path, values["json_path"]),
         class_dir=resolve_config_path(config_path, values["class_dir"]),
+        dataset_split=values["dataset_split"],
     )
 
 
@@ -311,6 +313,7 @@ def main() -> None:
         json_path=dataset_config.json_path,
         class_dir=dataset_config.class_dir,
         transform=preprocess,
+        split=dataset_config.dataset_split,
     )
     if args.max_samples is None:
         evaluation_dataset = dataset

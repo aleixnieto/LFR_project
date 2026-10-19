@@ -122,7 +122,7 @@ The fine-tuning configuration `open-clip/configs/finetune_config.yaml` is organi
 | Field | Purpose |
 | --- | --- |
 | `model_name`, `pretrained_tag`, `checkpoint_path` | OpenCLIP architecture, its preprocessing configuration, and the local initialization checkpoint. |
-| `image_dir`, `json_path` | Local RSICD resources. The JSON `train` split is used; JSON `test` remains untouched. |
+| `image_dir`, `json_path`, `dataset_split` | Local RSICD resources and the source JSON split. Fine-tuning uses `val`; the selected source split is divided deterministically into new train/validation subsets. |
 | `seed`, `supervised_train_fraction` | Deterministic split settings. The default creates an 80/20 train/validation split with seed 42. |
 | `caption_policy` | Documents the implemented `all_unique` behavior: every distinct caption for an image is used as a positive match. |
 | `batch_size`, `num_workers`, `epochs`, `learning_rate`, `warmup_fraction` | Training settings. The default optimizer is Adafactor with a linear schedule and 10% warmup. |
@@ -150,7 +150,7 @@ To run unrestricted supervised training with the values in the default configura
 python open-clip/main_finetune.py --device cuda
 ```
 
-Current scope is supervised image-caption fine-tuning only. The JSON `val` split, mixed supervised/unsupervised training, SimCLR, and checkpoint-resume command-line support are deferred.
+Current scope is supervised image-caption fine-tuning only. Mixed supervised/unsupervised training, SimCLR, and checkpoint-resume command-line support are deferred.
 
 ### Implementation Details
 

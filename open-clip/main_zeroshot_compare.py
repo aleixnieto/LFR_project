@@ -54,7 +54,7 @@ def load_comparison_dataset(models_config_path: Path) -> DatasetConfig:
     if not isinstance(values, dict):
         raise ValueError(f"Comparison config must contain a mapping: {models_config_path}")
 
-    required_keys = ("image_dir", "json_path", "class_dir")
+    required_keys = ("image_dir", "json_path", "class_dir", "dataset_split")
     missing = [key for key in required_keys if not isinstance(values.get(key), str)]
     if missing:
         raise ValueError(f"Comparison config is missing string values for: {', '.join(missing)}")
@@ -62,6 +62,7 @@ def load_comparison_dataset(models_config_path: Path) -> DatasetConfig:
         image_dir=resolve_path(models_config_path, values["image_dir"]),
         json_path=resolve_path(models_config_path, values["json_path"]),
         class_dir=resolve_path(models_config_path, values["class_dir"]),
+        dataset_split=values["dataset_split"],
     )
 
 
@@ -349,6 +350,7 @@ def main() -> None:
             json_path=dataset_config.json_path,
             class_dir=dataset_config.class_dir,
             transform=preprocess,
+            split=dataset_config.dataset_split,
         )
         evaluation_dataset = dataset if args.max_samples is None else Subset(dataset, range(min(args.max_samples, len(dataset))))
         if len(evaluation_dataset) == 0:
