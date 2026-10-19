@@ -40,6 +40,8 @@ class FineTuneConfig:
     learning_rate: float
     warmup_fraction: float
     output_dir: Path
+    optimizer: str = "adafactor"
+    weight_decay: float = 0.0
 
 
 def resolve_config_path(config_path: Path, configured_path: str) -> Path:
@@ -80,6 +82,8 @@ def load_config(config_path: Path) -> FineTuneConfig:
         num_workers = int(values["num_workers"])
         epochs = int(values["epochs"])
         learning_rate = float(values["learning_rate"])
+        optimizer = str(values.get("optimizer", "adafactor")).lower()
+        weight_decay = float(values.get("weight_decay", 0.0))
         warmup_fraction = float(values["warmup_fraction"])
     except (KeyError, TypeError, ValueError) as error:
         raise ValueError("Fine-tuning config has invalid numeric settings") from error
@@ -87,6 +91,10 @@ def load_config(config_path: Path) -> FineTuneConfig:
         raise ValueError("supervised_train_fraction must be strictly between zero and one")
     if batch_size <= 0 or num_workers < 0 or epochs <= 0 or learning_rate <= 0:
         raise ValueError("batch_size, epochs, and learning_rate must be positive; num_workers cannot be negative")
+    if optimizer not in {"adafactor", "adamw"}:
+        raise ValueError("optimizer must be either 'adafactor' or 'adamw'")
+    if weight_decay < 0:
+        raise ValueError("weight_decay cannot be negative")
     if not 0 <= warmup_fraction < 1:
         raise ValueError("warmup_fraction must be at least zero and less than one")
 
@@ -103,6 +111,8 @@ def load_config(config_path: Path) -> FineTuneConfig:
         num_workers=num_workers,
         epochs=epochs,
         learning_rate=learning_rate,
+        optimizer=optimizer,
+        weight_decay=weight_decay,
         warmup_fraction=warmup_fraction,
         output_dir=resolve_config_path(config_path, values["output_dir"]),
     )
@@ -276,14 +286,42 @@ def validate_one_epoch(
 
 def create_optimizer_and_scheduler(
     model: torch.nn.Module, config: FineTuneConfig, total_steps: int
-) -> tuple[Adafactor, object]:
-    optimizer = Adafactor(
-        model.parameters(),
-        scale_parameter=True,
-        relative_step=False,
-        warmup_init=False,
-        lr=config.learning_rate,
-    )
+) -> tuple[torch.optim.Optimizer, object]:
+    if config.optimizer == "adafactor":
+        optimizer = Adafactor(
+            model.parameters(),
+            scale_parameter=True,
+            relative_step=False,
+            warmup_init=False,
+            lr=config.learning_rate,
+            weight_decay=config.weight_decay,
+        )
+    else:
+        decay_parameters = []
+        no_decay_parameters = []
+        for name, parameter in model.named_parameters():
+            if not parameter.requires_grad:
+                continue
+            if (
+                parameter.ndim < 2
+                or "bn" in name.lower()
+                or "ln" in name.lower()
+                or "bias" in name.lower()
+                or "logit_scale" in name.lower()
+            ):
+                no_decay_parameters.append(parameter)
+            else:
+                decay_parameters.append(parameter)
+        optimizer = torch.optim.AdamW(
+            [
+                {"params": decay_parameters},
+                {"params": no_decay_parameters, "weight_decay": 0.0},
+            ],
+            lr=config.learning_rate,
+            betas=(0.9, 0.98),
+            eps=1e-6,
+            weight_decay=config.weight_decay,
+        )
     scheduler = get_scheduler(
         name="linear",
         optimizer=optimizer,
@@ -309,7 +347,7 @@ def write_metrics(output_dir: Path, metrics: dict[str, object]) -> None:
 
 def checkpoint_state(
     model: torch.nn.Module,
-    optimizer: Adafactor,
+    optimizer: torch.optim.Optimizer,
     scheduler,
     epoch: int,
     best_validation_loss: float,
@@ -461,6 +499,8 @@ def run_finetune(args: argparse.Namespace, config: FineTuneConfig) -> None:
         "train_images": len(train_dataset),
         "validation_images": len(validation_dataset),
         "configured_epochs": config.epochs,
+        "optimizer": config.optimizer,
+        "weight_decay": config.weight_decay,
         "max_train_batches": args.max_train_batches,
         "max_validation_batches": args.max_validation_batches,
         "epochs": [],
@@ -469,6 +509,7 @@ def run_finetune(args: argparse.Namespace, config: FineTuneConfig) -> None:
     print(f"Model: {config.model_name} / {config.pretrained_tag}")
     print(f"Checkpoint: {config.checkpoint_path}")
     print(f"Device: {device}")
+    print(f"Optimizer: {config.optimizer}; weight decay: {config.weight_decay:g}")
     print(f"Train/validation images: {len(train_dataset)}/{len(validation_dataset)}")
     best_validation_loss = float("inf")
     for epoch in range(config.epochs):

@@ -125,7 +125,8 @@ The fine-tuning configuration `open-clip/configs/finetune_config.yaml` is organi
 | `image_dir`, `json_path`, `dataset_split` | Local RSICD resources and the source JSON split. Fine-tuning uses `val`; the selected source split is divided deterministically into new train/validation subsets. |
 | `seed`, `supervised_train_fraction` | Deterministic split settings. The default creates an 80/20 train/validation split with seed 42. |
 | `caption_policy` | Documents the implemented `all_unique` behavior: every distinct caption for an image is used as a positive match. |
-| `batch_size`, `num_workers`, `epochs`, `learning_rate`, `warmup_fraction` | Training settings. The default optimizer is Adafactor with a linear schedule and 10% warmup. |
+| `batch_size`, `num_workers`, `epochs`, `learning_rate`, `warmup_fraction` | Training and linear-schedule settings. |
+| `optimizer`, `weight_decay` | Optional optimizer recipe. Supported optimizers are `adafactor` (the backward-compatible default) and `adamw`; weight decay defaults to zero. |
 | `output_dir` | Default directory for metrics and checkpoints. |
 
 Run a bounded one-epoch smoke test, preferably into a separate output directory:
@@ -199,7 +200,7 @@ the loader keeps
 
 > TODO: Implement and document alternative caption-handling methods
 
-**Optimization:** All model parameters remain trainable. Adafactor is configured with `scale_parameter=True`, `relative_step=False`, `warmup_init=False`, and the configured learning rate (default `1e-4`). The linear scheduler has `floor(warmup_fraction * total_training_steps)` warmup steps; `total_training_steps` accounts for `epochs` and any `--max-train-batches` limit. After every optimizer update, the logit-scale parameter is clamped to \([0, 4.6052]\), i.e. its exponential is at most approximately 100.
+**Optimization:** All model parameters remain trainable. The default Adafactor recipe uses `scale_parameter=True`, `relative_step=False`, `warmup_init=False`, and the configured learning rate. Selecting `adamw` uses betas `(0.9, 0.98)` and epsilon `1e-6`; bias, normalization, scalar, and logit-scale parameters are excluded from weight decay. The linear scheduler has `floor(warmup_fraction * total_training_steps)` warmup steps; `total_training_steps` accounts for `epochs` and any `--max-train-batches` limit. After every optimizer update, the logit-scale parameter is clamped to \([0, 4.6052]\), i.e. its exponential is at most approximately 100.
 
 **Metrics:** Per-epoch mean loss, positive-pair logits, logit scale, learning rate, and processed-batch count are written to `metrics.json`.
 
