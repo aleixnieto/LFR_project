@@ -2,6 +2,7 @@
 
 import argparse
 import contextlib
+import hashlib
 import json
 import logging
 import random
@@ -18,10 +19,15 @@ import yaml
 from torch.utils.data import DataLoader
 from transformers import Adafactor, get_scheduler
 
-from dataloader import build_supervised_train_val_datasets, collate_supervised_captions
+from dataloader import (
+    CAPTION_POLICIES,
+    build_supervised_train_val_datasets,
+    collate_supervised_captions,
+)
 
 
 DEFAULT_CONFIG_PATH = Path(__file__).with_name("configs") / "finetune_config.yaml"
+TEXT_TO_IMAGE_WEIGHTINGS = frozenset({"per_caption", "per_image"})
 
 
 @dataclass(frozen=True)
@@ -32,6 +38,8 @@ class FineTuneConfig:
     image_dir: Path
     json_path: Path
     dataset_split: str
+    caption_policy: str
+    text_to_image_weighting: str
     seed: int
     supervised_train_fraction: float
     batch_size: int
@@ -69,6 +77,8 @@ def load_config(config_path: Path) -> FineTuneConfig:
         "image_dir",
         "json_path",
         "dataset_split",
+        "caption_policy",
+        "text_to_image_weighting",
         "output_dir",
     )
     missing = [key for key in required_strings if not isinstance(values.get(key), str)]
@@ -87,6 +97,19 @@ def load_config(config_path: Path) -> FineTuneConfig:
         warmup_fraction = float(values["warmup_fraction"])
     except (KeyError, TypeError, ValueError) as error:
         raise ValueError("Fine-tuning config has invalid numeric settings") from error
+    caption_policy = values["caption_policy"]
+    if caption_policy not in CAPTION_POLICIES:
+        choices = ", ".join(sorted(CAPTION_POLICIES))
+        raise ValueError(
+            f"caption_policy must be one of: {choices}; got {caption_policy!r}"
+        )
+    text_to_image_weighting = values["text_to_image_weighting"]
+    if text_to_image_weighting not in TEXT_TO_IMAGE_WEIGHTINGS:
+        choices = ", ".join(sorted(TEXT_TO_IMAGE_WEIGHTINGS))
+        raise ValueError(
+            "text_to_image_weighting must be one of: "
+            f"{choices}; got {text_to_image_weighting!r}"
+        )
     if not 0 < train_fraction < 1:
         raise ValueError("supervised_train_fraction must be strictly between zero and one")
     if batch_size <= 0 or num_workers < 0 or epochs <= 0 or learning_rate <= 0:
@@ -105,6 +128,8 @@ def load_config(config_path: Path) -> FineTuneConfig:
         image_dir=resolve_config_path(config_path, values["image_dir"]),
         json_path=resolve_config_path(config_path, values["json_path"]),
         dataset_split=values["dataset_split"],
+        caption_policy=caption_policy,
+        text_to_image_weighting=text_to_image_weighting,
         seed=seed,
         supervised_train_fraction=train_fraction,
         batch_size=batch_size,
@@ -173,8 +198,15 @@ def supervised_contrastive_loss(
     images: torch.Tensor,
     texts: torch.Tensor,
     caption_to_image: torch.Tensor,
+    text_to_image_weighting: str = "per_caption",
 ) -> tuple[torch.Tensor, dict[str, float]]:
     """Symmetric CLIP loss where every caption is positive for its source image."""
+    if text_to_image_weighting not in TEXT_TO_IMAGE_WEIGHTINGS:
+        choices = ", ".join(sorted(TEXT_TO_IMAGE_WEIGHTINGS))
+        raise ValueError(
+            "text_to_image_weighting must be one of: "
+            f"{choices}; got {text_to_image_weighting!r}"
+        )
     if images.ndim != 4 or texts.ndim != 2:
         raise ValueError("Expected images [batch, channels, height, width] and texts [captions, tokens]")
     if caption_to_image.ndim != 1 or caption_to_image.numel() != texts.shape[0]:
@@ -190,7 +222,25 @@ def supervised_contrastive_loss(
     text_to_image_logits = logit_scale * text_features @ image_features.T
     image_to_text_logits = text_to_image_logits.T
 
-    loss_text_to_image = functional.cross_entropy(text_to_image_logits, caption_to_image)
+    caption_losses = functional.cross_entropy(
+        text_to_image_logits, caption_to_image, reduction="none"
+    )
+    captions_per_image = torch.bincount(
+        caption_to_image, minlength=images.shape[0]
+    )
+    if torch.any(captions_per_image == 0):
+        raise ValueError("Every image must have at least one caption")
+    if text_to_image_weighting == "per_caption":
+        loss_text_to_image = caption_losses.mean()
+    else:
+        image_loss_sums = torch.zeros(
+            images.shape[0], dtype=caption_losses.dtype, device=images.device
+        )
+        image_loss_sums.scatter_add_(0, caption_to_image, caption_losses)
+        loss_text_to_image = (
+            image_loss_sums / captions_per_image.to(caption_losses.dtype)
+        ).mean()
+
     image_to_text_targets = functional.one_hot(
         caption_to_image, num_classes=images.shape[0]
     ).T.to(image_to_text_logits.dtype)
@@ -205,6 +255,8 @@ def supervised_contrastive_loss(
     ].mean()
     positive_image_to_text = (image_to_text_logits * image_to_text_targets).sum(dim=1).mean()
     return loss, {
+        "text_to_image_loss": float(loss_text_to_image.detach().item()),
+        "image_to_text_loss": float(loss_image_to_text.detach().item()),
         "positive_text_to_image_logit": float(positive_text_to_image.detach().item()),
         "positive_image_to_text_logit": float(positive_image_to_text.detach().item()),
         "logit_scale": float(logit_scale.detach().item()),
@@ -226,6 +278,12 @@ def mean_epoch_statistics(statistics: list[dict[str, float]]) -> dict[str, float
     return {key: sum(item[key] for item in statistics) / len(statistics) for key in keys}
 
 
+def hash_filename_order(filenames: list[str]) -> str:
+    """Hash an observed image order without storing dataset filenames."""
+    payload = "\n".join(filenames).encode("utf-8")
+    return hashlib.sha256(payload).hexdigest()
+
+
 def train_one_epoch(
     model: torch.nn.Module,
     data_loader: DataLoader,
@@ -233,16 +291,23 @@ def train_one_epoch(
     scheduler,
     device: torch.device,
     max_batches: int | None,
-) -> dict[str, float]:
+    text_to_image_weighting: str = "per_caption",
+) -> dict[str, object]:
     """Fine-tune every OpenCLIP parameter for one supervised epoch."""
     model.train()
     batch_statistics: list[dict[str, float]] = []
+    processed_filenames: list[str] = []
+    processed_captions = 0
     for batch_index, batch in enumerate(data_loader):
         if max_batches is not None and batch_index >= max_batches:
             break
+        processed_filenames.extend(batch["filenames"])
+        processed_captions += int(batch["texts"].shape[0])
         optimizer.zero_grad(set_to_none=True)
         loss, statistics = supervised_contrastive_loss(
-            model, *move_batch_to_device(batch, device)
+            model,
+            *move_batch_to_device(batch, device),
+            text_to_image_weighting=text_to_image_weighting,
         )
         if not torch.isfinite(loss):
             raise FloatingPointError(f"Non-finite training loss at batch {batch_index}: {loss.item()}")
@@ -254,8 +319,16 @@ def train_one_epoch(
         batch_statistics.append({"loss": float(loss.detach().item()), **statistics})
 
     metrics = mean_epoch_statistics(batch_statistics)
+    metrics["objective_loss"] = metrics["loss"]
     metrics["learning_rate"] = float(optimizer.param_groups[0]["lr"])
     metrics["batches"] = float(len(batch_statistics))
+    metrics["optimizer_steps"] = len(batch_statistics)
+    metrics["images"] = len(processed_filenames)
+    metrics["captions"] = processed_captions
+    metrics["captions_per_image"] = (
+        processed_captions / len(processed_filenames)
+    )
+    metrics["image_order_sha256"] = hash_filename_order(processed_filenames)
     return metrics
 
 
@@ -269,18 +342,31 @@ def validate_one_epoch(
     """Evaluate the held-out supervised subset without updating parameters."""
     model.eval()
     batch_statistics: list[dict[str, float]] = []
+    processed_filenames: list[str] = []
+    processed_captions = 0
     for batch_index, batch in enumerate(data_loader):
         if max_batches is not None and batch_index >= max_batches:
             break
+        processed_filenames.extend(batch["filenames"])
+        processed_captions += int(batch["texts"].shape[0])
         loss, statistics = supervised_contrastive_loss(
-            model, *move_batch_to_device(batch, device)
+            model,
+            *move_batch_to_device(batch, device),
+            text_to_image_weighting="per_caption",
         )
         if not torch.isfinite(loss):
             raise FloatingPointError(f"Non-finite validation loss at batch {batch_index}: {loss.item()}")
         batch_statistics.append({"loss": float(loss.item()), **statistics})
 
     metrics = mean_epoch_statistics(batch_statistics)
+    metrics["selection_loss"] = metrics["loss"]
     metrics["batches"] = float(len(batch_statistics))
+    metrics["images"] = len(processed_filenames)
+    metrics["captions"] = processed_captions
+    metrics["captions_per_image"] = (
+        processed_captions / len(processed_filenames)
+    )
+    metrics["image_order_sha256"] = hash_filename_order(processed_filenames)
     return metrics
 
 
@@ -472,15 +558,26 @@ def run_finetune(args: argparse.Namespace, config: FineTuneConfig) -> None:
         train_fraction=config.supervised_train_fraction,
         seed=config.seed,
         source_split=config.dataset_split,
+        train_caption_policy=config.caption_policy,
     )
     loader_options = {
         "batch_size": config.batch_size,
         "num_workers": config.num_workers,
         "pin_memory": device.type == "cuda",
         "collate_fn": collate_supervised_captions,
+        "drop_last": False,
+        "persistent_workers": False,
     }
-    train_loader = DataLoader(train_dataset, shuffle=True, **loader_options)
-    validation_loader = DataLoader(validation_dataset, shuffle=False, **loader_options)
+    shuffle_generator = torch.Generator().manual_seed(config.seed)
+    train_loader = DataLoader(
+        train_dataset,
+        shuffle=True,
+        generator=shuffle_generator,
+        **loader_options,
+    )
+    validation_loader = DataLoader(
+        validation_dataset, shuffle=False, **loader_options
+    )
 
     train_batches = min(len(train_loader), args.max_train_batches or len(train_loader))
     if train_batches == 0:
@@ -496,9 +593,17 @@ def run_finetune(args: argparse.Namespace, config: FineTuneConfig) -> None:
         "json_path": str(config.json_path),
         "device": str(device),
         "seed": config.seed,
+        "caption_policy": config.caption_policy,
+        "text_to_image_weighting": config.text_to_image_weighting,
+        "validation_caption_policy": "all_unique",
+        "validation_text_to_image_weighting": "per_caption",
+        "drop_last": False,
+        "persistent_workers": False,
         "train_images": len(train_dataset),
         "validation_images": len(validation_dataset),
         "configured_epochs": config.epochs,
+        "train_batches_per_epoch": train_batches,
+        "planned_optimizer_steps": total_steps,
         "optimizer": config.optimizer,
         "weight_decay": config.weight_decay,
         "max_train_batches": args.max_train_batches,
@@ -510,16 +615,26 @@ def run_finetune(args: argparse.Namespace, config: FineTuneConfig) -> None:
     print(f"Checkpoint: {config.checkpoint_path}")
     print(f"Device: {device}")
     print(f"Optimizer: {config.optimizer}; weight decay: {config.weight_decay:g}")
+    print(f"Training caption policy: {config.caption_policy}")
+    print(f"Text-to-image weighting: {config.text_to_image_weighting}")
+    print("Validation objective: all_unique / per_caption")
     print(f"Train/validation images: {len(train_dataset)}/{len(validation_dataset)}")
     best_validation_loss = float("inf")
     for epoch in range(config.epochs):
+        train_dataset.set_epoch(epoch)
         train_metrics = train_one_epoch(
-            model, train_loader, optimizer, scheduler, device, args.max_train_batches
+            model,
+            train_loader,
+            optimizer,
+            scheduler,
+            device,
+            args.max_train_batches,
+            text_to_image_weighting=config.text_to_image_weighting,
         )
         validation_metrics = validate_one_epoch(
             model, validation_loader, device, args.max_validation_batches
         )
-        validation_loss = validation_metrics["loss"]
+        validation_loss = validation_metrics["selection_loss"]
         if validation_loss < best_validation_loss:
             best_validation_loss = validation_loss
             is_best = True
