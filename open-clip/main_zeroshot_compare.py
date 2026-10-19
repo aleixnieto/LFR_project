@@ -232,7 +232,7 @@ def save_confusion_matrices_comparison(
     figure, axes = plt.subplots(
         rows, columns, figsize=(6 * columns, 6 * rows), squeeze=False, layout="constrained"
     )
-    flat_axes = axes.flat
+    flat_axes = axes.ravel()
     maximum = max(int(np.asarray(matrix).max()) for _, matrix in matrices)
     displays = []
 
@@ -252,9 +252,8 @@ def save_confusion_matrices_comparison(
         plt.setp(axis.get_yticklabels(), fontsize=7)
         displays.append(display)
 
-    for axis in flat_axes:
-        if not axis.has_data():
-            axis.set_visible(False)
+    for axis in flat_axes[len(matrices):]:
+        axis.set_visible(False)
     figure.colorbar(displays[0].im_, ax=axes.ravel().tolist(), shrink=0.8, label="Count")
     figure.suptitle("Confusion-matrix comparison", y=1.01)
     figure.savefig(output_path, dpi=150, bbox_inches="tight")
