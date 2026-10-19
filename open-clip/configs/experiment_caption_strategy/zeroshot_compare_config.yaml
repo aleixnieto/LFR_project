@@ -1,0 +1,31 @@
+# Compare the caption-strategy runs with their non-fine-tuned OpenCLIP baseline.
+# Paths are relative to this configuration file.
+image_dir: ../../../RSICD_images
+json_path: ../../../dataset_rsicd.json
+dataset_split: test
+class_dir: ../../../txtclasses_rsicd
+
+models:
+  - label: non_finetuned_baseline
+    model_name: ViT-B-32
+    pretrained_tag: laion2b_s34b_b79k
+    checkpoint_type: openclip
+    checkpoint_path: ../../../weights/open_clip/ViT-B-32-laion2b_s34b_b79k.bin
+
+  - label: all_unique_per_caption
+    model_name: ViT-B-32
+    pretrained_tag: laion2b_s34b_b79k
+    checkpoint_type: finetune
+    checkpoint_path: ../../../results/experiment_caption_strategy/open_clip_finetune_all_unique_per_caption/ckp_best.pth
+
+  - label: random_one_per_caption
+    model_name: ViT-B-32
+    pretrained_tag: laion2b_s34b_b79k
+    checkpoint_type: finetune
+    checkpoint_path: ../../../results/experiment_caption_strategy/open_clip_finetune_random_one_per_caption/ckp_best.pth
+
+  - label: all_unique_per_image
+    model_name: ViT-B-32
+    pretrained_tag: laion2b_s34b_b79k
+    checkpoint_type: finetune
+    checkpoint_path: ../../../results/experiment_caption_strategy/open_clip_finetune_all_unique_per_image/ckp_best.pth
