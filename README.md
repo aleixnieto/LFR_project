@@ -33,6 +33,8 @@ LFR_project/
 └── dataset_rsicd.json
 ```
 
+`dataset_split:` option in config-files controls what data-source is used for the workflow. This source might be used as the source for forming new train/val splits according to the config.
+
 ## Running main_zeroshot.py
 
 The evaluator `main_zeroshot.py` reads both its model selection and local RSICD resource locations from `zeroshot_config.yaml`. The configuration binds:
@@ -124,7 +126,8 @@ The fine-tuning configuration `open-clip/configs/finetune_config.yaml` is organi
 | `model_name`, `pretrained_tag`, `checkpoint_path` | OpenCLIP architecture, its preprocessing configuration, and the local initialization checkpoint. |
 | `image_dir`, `json_path`, `dataset_split` | Local RSICD resources and the source JSON split. Fine-tuning uses `val`; the selected source split is divided deterministically into new train/validation subsets. |
 | `seed`, `supervised_train_fraction` | Deterministic split settings. The default creates an 80/20 train/validation split with seed 42. |
-| `caption_policy` | Documents the implemented `all_unique` behavior: every distinct caption for an image is used as a positive match. |
+| `caption_policy` | Training caption selection: `all_unique` or one deterministic, seed-controlled `random_one` sample per image per epoch. |
+| `text_to_image_weighting` | Normalize text-to-image loss `per_caption` or `per_image`. |
 | `batch_size`, `num_workers`, `epochs`, `learning_rate`, `warmup_fraction` | Training settings. The default optimizer is Adafactor with a linear schedule and 10% warmup. |
 | `output_dir` | Default directory for metrics and checkpoints. |
 
@@ -140,8 +143,8 @@ python open-clip/main_finetune.py \
 ```
 
 Additional options:
-* Use `--device cpu` when CUDA is unavailable, or for debugging. 
-* The `--max-train-batches` and `--max-validation-batches` flags are optional; omit them to use the full configured subsets. 
+* Use `--device cpu` when CUDA is unavailable, or for debugging.
+* The `--max-train-batches` and `--max-validation-batches` flags are optional; omit them to use the full configured subsets.
 * Use a different config file with `--config path/to/finetune_config.yaml`
 
 To run unrestricted supervised training with the values in the default configuration:
@@ -158,11 +161,19 @@ Current scope is supervised image-caption fine-tuning only. Mixed supervised/uns
 
 For a batch of $B$ images and $N$ captions, let $g(n)\in\{1,\ldots,B\}$ map caption $n$ to its source image. The image and text encoders produce L2-normalized features $v_i$ and $t_n$, respectively. With $s=\exp(\texttt{model.logit\_scale})$, the logits are $z_{ni}=s\,t_n^\top v_i$. Let $P_i=\{n\mid g(n)=i\}$ be all captions belonging to image $i$.
 
-The caption-to-image term uses the source image as its single target:
+With `per_caption`, the caption-to-image term uses the source image as its single target and averages over captions:
 
 $$
-\mathcal{L}_{t\rightarrow i} = -\frac{1}{N}\sum_{n=1}^{N}
+\mathcal{L}_{t\rightarrow i}^{caption} = -\frac{1}{N}\sum_{n=1}^{N}
 \log\frac{\exp(z_{n,g(n)})}{\sum_{j=1}^{B}\exp(z_{nj})}.
+$$
+
+With `per_image`, caption losses are first averaged within each image and then across images:
+
+$$
+\mathcal{L}_{t\rightarrow i}^{image} = -\frac{1}{B}\sum_{i=1}^{B}
+\frac{1}{|P_i|}\sum_{n\in P_i}
+\log\frac{\exp(z_{n,i})}{\sum_{j=1}^{B}\exp(z_{nj})}.
 $$
 
 The image-to-caption term assigns equal target probability to every caption of that image:
@@ -181,29 +192,25 @@ $$
 
 > TODO: Implement and document a fine-tuning setup that can make use of the caption-less images for fine-tuning.
 
-#### Additional implementation details
-
-**Captions:** Each image's tokenized captions are deduplicated while preserving first-seen order; the collate function flattens them and emits the caption-to-image index map \(g\). For example, if RSICD lists captions as: 
+**Captions:** Each image's reconstructed caption strings are deduplicated while preserving first-seen order, then tokenized. With `all_unique`, the collate function flattens every retained caption and emits the caption-to-image index map \(g\). With `random_one`, it returns one deterministic sample keyed by seed, epoch, and image index. For example, if RSICD lists captions as:
 ```
 1. "an airport with runways"
 2. "aerial view of an airport"
 3. "an airport with runways"   # duplicate
 4. "airport surrounded by roads"
 ```
-the loader keeps 
+the loader keeps
 ```
 1. "an airport with runways"
 2. "aerial view of an airport"
 3. "airport surrounded by roads"
 ```
 
-> TODO: Implement and document alternative caption-handling methods
-
 **Optimization:** All model parameters remain trainable. Adafactor is configured with `scale_parameter=True`, `relative_step=False`, `warmup_init=False`, and the configured learning rate (default `1e-4`). The linear scheduler has `floor(warmup_fraction * total_training_steps)` warmup steps; `total_training_steps` accounts for `epochs` and any `--max-train-batches` limit. After every optimizer update, the logit-scale parameter is clamped to \([0, 4.6052]\), i.e. its exponential is at most approximately 100.
 
-**Metrics:** Per-epoch mean loss, positive-pair logits, logit scale, learning rate, and processed-batch count are written to `metrics.json`.
+**Metrics:** `metrics.json` records the configured training and validation strategies; directional and combined losses; image, caption, batch, and optimizer-step counts; captions per image; and SHA-256 hashes of processed image order. `ckp_best.pth` is selected only by the common all-unique/per-caption `validation.selection_loss`.
 
-**Seeding:** Python, NumPy, PyTorch, and available CUDA RNGs are seeded from `seed`. 
+**Seeding:** Python, NumPy, PyTorch, and available CUDA RNGs are seeded from `seed`.
 
 **Checkpoint:** `ckp_best.pth` is selected by validation loss, while `ckp_last.pth` is always written. Both include model, optimizer, scheduler, epoch, metrics, and RNG states; the run verifies that the final checkpoint can be restored into a fresh matching model.
 
@@ -226,3 +233,61 @@ directories (or direct `metrics.json` paths) and repeat `--label`:
 python open-clip/plotting_utils.py results/run_a results/run_b \
   --label baseline --label tuned --output-dir results/run_comparison_plots
 ```
+
+## Experiments
+
+### Running the caption-strategy experiment
+
+The experiment uses three full-run configurations that differ in caption selection and text-to-image weighting.
+
+The **all-unique/per-caption baseline** encodes every unique caption for an image and averages the text-to-image loss over captions. It exposes the model to all available descriptions, but images with more unique captions contribute more text-to-image terms. 
+
+**Random-one/per-caption** instead uses one deterministic, seed-controlled caption sample per image per epoch. This keeps image exposure unchanged while reducing text-encoder work and giving every image one text-to-image term; the same caption may be sampled in consecutive epochs.
+
+**All-unique/per-image** encodes the same captions as the baseline, but first averages caption losses within each image so every image has equal text-to-image weight. All three variants use the same all-unique/per-caption validation objective.
+
+| Configuration | Training captions | Text-to-image weighting | Question tested |
+| --- | --- | --- | --- |
+| `finetune_full_config.yaml` | All unique captions | Per caption | Current multi-caption baseline |
+| `finetune_full_random_one_config.yaml` | One seed-controlled sample per image per epoch | Per caption | Effect of using all captions; samples may repeat across epochs |
+| `finetune_full_per_image_config.yaml` | All unique captions | Per image | Effect of caption-count weighting |
+
+Run the three configurations from the repository root:
+
+```bash
+python open-clip/main_finetune.py \
+  --config open-clip/configs/experiment_caption_strategy/finetune_full_config.yaml --device cuda
+
+python open-clip/main_finetune.py \
+  --config open-clip/configs/experiment_caption_strategy/finetune_full_random_one_config.yaml --device cuda
+
+python open-clip/main_finetune.py \
+  --config open-clip/configs/experiment_caption_strategy/finetune_full_per_image_config.yaml --device cuda
+```
+
+They write to these separate directories:
+
+```text
+results/open_clip_finetune_all_unique_per_caption
+results/open_clip_finetune_random_one_per_caption
+results/open_clip_finetune_all_unique_per_image
+```
+
+The fixed budget is equal image exposure rather than equal text-encoder compute.
+All configurations use the same source and derived split, seed, image batch
+size, five epochs, `drop_last=False`, optimizer-step count, and shuffled image
+order. The all-unique configurations encode more captions than `random_one`.
+The per-image configuration isolates loss normalization; it is not a
+compute-matched alternative.
+
+For every epoch, compare these entries in each run's `metrics.json`:
+
+- `train.image_order_sha256`, `train.images`, and `train.optimizer_steps` must
+  match across runs.
+- `train.captions` and `train.captions_per_image` show the text-compute
+  difference.
+- `train.text_to_image_loss`, `train.image_to_text_loss`, and
+  `train.objective_loss` describe the configured training objective.
+- `validation.selection_loss` is the common all-unique/per-caption metric used
+  for checkpoint selection. It is intentionally not the random-one run's
+  training objective.

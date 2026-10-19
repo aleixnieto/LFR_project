@@ -186,6 +186,13 @@ class TextToImageWeightingTests(unittest.TestCase):
         self.assertEqual(metrics["selection_loss"], 1.25)
         self.assertEqual(metrics["text_to_image_loss"], 1.0)
         self.assertEqual(metrics["image_to_text_loss"], 1.5)
+        self.assertEqual(metrics["images"], 2)
+        self.assertEqual(metrics["captions"], 3)
+        self.assertEqual(metrics["captions_per_image"], 1.5)
+        self.assertEqual(
+            metrics["image_order_sha256"],
+            main_finetune.hash_filename_order(["a.jpg", "b.jpg"]),
+        )
 
 
 if __name__ == "__main__":

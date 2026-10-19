@@ -1,0 +1,24 @@
+# Full supervised OpenCLIP ViT-B/32 caption-strategy experiment.
+# Relative paths resolve from this file.
+model_name: ViT-B-32
+pretrained_tag: laion2b_s34b_b79k
+checkpoint_path: ../../../weights/open_clip/ViT-B-32-laion2b_s34b_b79k.bin
+
+# The original JSON val portion is the captioned source subset. It is split by
+# image into derived 80% training and 20% validation subsets. The original test
+# portion remains held out for final testing only.
+image_dir: ../../../RSICD_images
+json_path: ../../../dataset_rsicd.json
+dataset_split: val
+seed: 42
+supervised_train_fraction: 0.8
+caption_policy: all_unique
+text_to_image_weighting: per_image
+
+# These controls are identical across all three experiment variants.
+batch_size: 32
+num_workers: 4
+epochs: 5
+learning_rate: 0.00003
+warmup_fraction: 0.1
+output_dir: ../../../results/open_clip_finetune_all_unique_per_image

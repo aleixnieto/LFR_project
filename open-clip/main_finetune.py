@@ -312,8 +312,12 @@ def train_one_epoch(
     metrics["objective_loss"] = metrics["loss"]
     metrics["learning_rate"] = float(optimizer.param_groups[0]["lr"])
     metrics["batches"] = float(len(batch_statistics))
+    metrics["optimizer_steps"] = len(batch_statistics)
     metrics["images"] = len(processed_filenames)
     metrics["captions"] = processed_captions
+    metrics["captions_per_image"] = (
+        processed_captions / len(processed_filenames)
+    )
     metrics["image_order_sha256"] = hash_filename_order(processed_filenames)
     return metrics
 
@@ -328,9 +332,13 @@ def validate_one_epoch(
     """Evaluate the held-out supervised subset without updating parameters."""
     model.eval()
     batch_statistics: list[dict[str, float]] = []
+    processed_filenames: list[str] = []
+    processed_captions = 0
     for batch_index, batch in enumerate(data_loader):
         if max_batches is not None and batch_index >= max_batches:
             break
+        processed_filenames.extend(batch["filenames"])
+        processed_captions += int(batch["texts"].shape[0])
         loss, statistics = supervised_contrastive_loss(
             model,
             *move_batch_to_device(batch, device),
@@ -343,6 +351,12 @@ def validate_one_epoch(
     metrics = mean_epoch_statistics(batch_statistics)
     metrics["selection_loss"] = metrics["loss"]
     metrics["batches"] = float(len(batch_statistics))
+    metrics["images"] = len(processed_filenames)
+    metrics["captions"] = processed_captions
+    metrics["captions_per_image"] = (
+        processed_captions / len(processed_filenames)
+    )
+    metrics["image_order_sha256"] = hash_filename_order(processed_filenames)
     return metrics
 
 
@@ -550,6 +564,8 @@ def run_finetune(args: argparse.Namespace, config: FineTuneConfig) -> None:
         "train_images": len(train_dataset),
         "validation_images": len(validation_dataset),
         "configured_epochs": config.epochs,
+        "train_batches_per_epoch": train_batches,
+        "planned_optimizer_steps": total_steps,
         "max_train_batches": args.max_train_batches,
         "max_validation_batches": args.max_validation_batches,
         "epochs": [],
