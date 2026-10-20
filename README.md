@@ -240,5 +240,5 @@ python open-clip/plotting_utils.py results/run_a results/run_b \
 See separate readme files under each config folder.
 
 Current experiments:
-1. Ablation study for training hyper-parameters: [Readme here!](open-clip/configs/ablations/README.md)
+1. Ablation study for fine-tuning hyper-parameters: [Readme here!](open-clip/configs/ablations/README.md)
 2. Evaluation of caption usage strategies: [Readme here!](open-clip/configs/experiment_caption_strategy/README.md)
