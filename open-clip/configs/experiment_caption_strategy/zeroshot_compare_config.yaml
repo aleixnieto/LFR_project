@@ -16,16 +16,16 @@ models:
     model_name: ViT-B-32
     pretrained_tag: laion2b_s34b_b79k
     checkpoint_type: finetune
-    checkpoint_path: ../../../results/experiment_caption_strategy/open_clip_finetune_all_unique_per_caption/ckp_best.pth
+    checkpoint_path: ../../../results/experiment_caption_strategy_2/open_clip_finetune_all_unique_per_caption/ckp_best.pth
 
   - label: random_one_per_caption
     model_name: ViT-B-32
     pretrained_tag: laion2b_s34b_b79k
     checkpoint_type: finetune
-    checkpoint_path: ../../../results/experiment_caption_strategy/open_clip_finetune_random_one_per_caption/ckp_best.pth
+    checkpoint_path: ../../../results/experiment_caption_strategy_2/open_clip_finetune_random_one_per_caption/ckp_best.pth
 
   - label: all_unique_per_image
     model_name: ViT-B-32
     pretrained_tag: laion2b_s34b_b79k
     checkpoint_type: finetune
-    checkpoint_path: ../../../results/experiment_caption_strategy/open_clip_finetune_all_unique_per_image/ckp_best.pth
+    checkpoint_path: ../../../results/experiment_caption_strategy_2/open_clip_finetune_all_unique_per_image/ckp_best.pth

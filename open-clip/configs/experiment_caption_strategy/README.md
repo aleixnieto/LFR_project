@@ -2,6 +2,8 @@
 
 The experiment uses three full-run configurations that differ in caption selection and text-to-image weighting.
 
+All three use the training recipe selected by the full matrix ablation. The winning ablation configuration was `bs16_adamw_lr_3e-5`.
+
 The **all-unique/per-caption baseline** encodes every unique caption for an image and averages the text-to-image loss over captions. It exposes the model to all available descriptions, but images with more unique captions contribute more text-to-image terms. 
 
 **Random-one/per-caption** instead uses one deterministic, seed-controlled caption sample per image per epoch. This keeps image exposure unchanged while reducing text-encoder work and giving every image one text-to-image term; the same caption may be sampled in consecutive epochs.
@@ -17,7 +19,7 @@ The **all-unique/per-caption baseline** encodes every unique caption for an imag
 Run the three configurations from the repository root:
 
 ```bash
-for config in open-clip/configs/experiment_caption_strategy/finetune_full*_config.yaml; do
+for config in open-clip/configs/experiment_caption_strategy_2/finetune_full*_config.yaml; do
   python open-clip/main_finetune.py --config "$config" --device cuda || break
 done
 ```
@@ -25,9 +27,9 @@ done
 They write to these separate directories:
 
 ```text
-results/experiment_caption_strategy/open_clip_finetune_all_unique_per_caption
-results/experiment_caption_strategy/open_clip_finetune_random_one_per_caption
-results/experiment_caption_strategy/open_clip_finetune_all_unique_per_image
+results/experiment_caption_strategy_2/open_clip_finetune_all_unique_per_caption
+results/experiment_caption_strategy_2/open_clip_finetune_random_one_per_caption
+results/experiment_caption_strategy_2/open_clip_finetune_all_unique_per_image
 ```
 
 ### Plotting training metrics
@@ -37,13 +39,13 @@ each model by running this command from the repository root:
 
 ```bash
 python open-clip/plotting_utils.py \
-  results/experiment_caption_strategy/open_clip_finetune_all_unique_per_caption \
-  results/experiment_caption_strategy/open_clip_finetune_random_one_per_caption \
-  results/experiment_caption_strategy/open_clip_finetune_all_unique_per_image \
+  results/experiment_caption_strategy_2/open_clip_finetune_all_unique_per_caption \
+  results/experiment_caption_strategy_2/open_clip_finetune_random_one_per_caption \
+  results/experiment_caption_strategy_2/open_clip_finetune_all_unique_per_image \
   --label all_unique_per_caption \
   --label random_one_per_caption \
   --label all_unique_per_image \
-  --output-dir results/experiment_caption_strategy/training_metric_plots
+  --output-dir results/experiment_caption_strategy_2/training_metric_plots
 ```
 
 The command writes loss, positive text-to-image and image-to-text logits,
@@ -63,7 +65,7 @@ Run the comparison from the repository root:
 python open-clip/main_zeroshot_compare.py \
   --models-config open-clip/configs/experiment_caption_strategy/zeroshot_compare_config.yaml \
   --device cuda \
-  --output-dir evaluations/open_clip_caption_strategy_comparison
+  --output-dir evaluations/open_clip_caption_strategy_comparison_2
 ```
 
 The evaluation writes an aggregate `summary.json`, comparison plots, and
