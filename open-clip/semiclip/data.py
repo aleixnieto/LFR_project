@@ -12,8 +12,8 @@ from dataloader import (
     RSICDSupervisedDataset,
     split_rsicd_records,
 )
-from semiclip_augment import RandAugmentMC
-from semiclip_config import SemiCLIPConfig
+from semiclip.augment import RandAugmentMC
+from semiclip.config import SemiCLIPConfig
 
 
 OPENCLIP_MEAN = (0.48145466, 0.4578275, 0.40821073)

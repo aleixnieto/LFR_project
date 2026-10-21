@@ -14,10 +14,10 @@ import torch.nn.functional as functional
 from torch import nn
 from transformers import get_scheduler
 
-from semiclip_concepts import hash_filenames
-from semiclip_config import SemiCLIPConfig
-from semiclip_losses import stage1_loss_components
-from semiclip_model import ConceptClassifier
+from semiclip.concepts import hash_filenames
+from semiclip.config import SemiCLIPConfig
+from semiclip.losses import stage1_loss_components
+from semiclip.model import ConceptClassifier
 
 
 def _progress(message: str) -> None:

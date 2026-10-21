@@ -4,8 +4,14 @@ import argparse
 import json
 import random
 import shutil
+import sys
 from dataclasses import asdict, dataclass, replace
 from pathlib import Path
+
+
+OPEN_CLIP_DIR = Path(__file__).resolve().parents[1]
+if str(OPEN_CLIP_DIR) not in sys.path:
+    sys.path.insert(0, str(OPEN_CLIP_DIR))
 
 import numpy as np
 import open_clip
@@ -13,28 +19,26 @@ import torch
 from torch.utils.data import DataLoader
 
 from dataloader import collate_supervised_captions, split_rsicd_records
-from semiclip_concepts import (
+from semiclip.concepts import (
     ConceptMiningResult,
     hash_filenames,
     mine_semantic_concepts,
     require_nltk_resources,
 )
-from semiclip_config import SemiCLIPConfig, load_semiclip_config
-from semiclip_data import (
+from semiclip.config import SemiCLIPConfig, load_semiclip_config
+from semiclip.data import (
     SemiCLIPDatasets,
     build_semiclip_datasets,
     collate_concept_labeled,
     collate_unlabeled_images,
     collate_unlabeled_views,
 )
-from semiclip_model import initialize_concept_classifier
-from semiclip_stage1 import fit_stage1
-from semiclip_stage2 import fit_stage2, prepare_stage2
+from semiclip.model import initialize_concept_classifier
+from semiclip.stage1 import fit_stage1
+from semiclip.stage2 import fit_stage2, prepare_stage2
 
 
-DEFAULT_CONFIG_PATH = (
-    Path(__file__).with_name("configs") / "semiclip" / "semiclip_rsicd.yaml"
-)
+DEFAULT_CONFIG_PATH = Path(__file__).with_name("configs") / "semiclip_rsicd.yaml"
 CONCEPT_ARTIFACT_NAME = "concepts.json"
 
 

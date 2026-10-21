@@ -14,11 +14,11 @@ import torch.nn.functional as functional
 from torch import nn
 from transformers import get_scheduler
 
-from semiclip_concepts import hash_filenames
-from semiclip_config import SemiCLIPConfig
-from semiclip_losses import stage2_loss_components
-from semiclip_model import ConceptClassifier, SurrogateCaptionEncoder
-from semiclip_stage1 import _progress, restore_stage1_final, validate_stage1
+from semiclip.concepts import hash_filenames
+from semiclip.config import SemiCLIPConfig
+from semiclip.losses import stage2_loss_components
+from semiclip.model import ConceptClassifier, SurrogateCaptionEncoder
+from semiclip.stage1 import _progress, restore_stage1_final, validate_stage1
 
 
 @dataclass(frozen=True)
