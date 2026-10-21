@@ -270,6 +270,28 @@ class RSICDSupervisedDataset(Dataset):
         return image_tensor, self.selected_caption_tokens(idx), self.filenames[idx]
 
 
+def split_rsicd_records(
+    json_path: str | Path,
+    source_split: str,
+    train_fraction: float,
+    seed: int,
+) -> tuple[list[dict], list[dict]]:
+    """Deterministically partition whole records from one RSICD source split."""
+    json_path = Path(json_path)
+    if not 0 < train_fraction < 1:
+        raise ValueError("train_fraction must be strictly between 0 and 1")
+    records = _load_rsicd_split(json_path, source_split)
+    if len(records) < 2:
+        raise ValueError(f"RSICD JSON {source_split!r} split must contain at least two records")
+    generator = torch.Generator().manual_seed(seed)
+    indices = torch.randperm(len(records), generator=generator).tolist()
+    train_size = int(len(records) * train_fraction)
+    return (
+        [records[index] for index in indices[:train_size]],
+        [records[index] for index in indices[train_size:]],
+    )
+
+
 def build_supervised_train_val_datasets(
     image_dir: str | Path,
     json_path: str | Path,
@@ -283,18 +305,9 @@ def build_supervised_train_val_datasets(
 ) -> tuple[RSICDSupervisedDataset, RSICDSupervisedDataset]:
     """Split one captioned JSON source split for fine-tuning."""
     image_dir, json_path = _validate_rsicd_paths(image_dir, json_path)
-    if not 0 < train_fraction < 1:
-        raise ValueError("train_fraction must be strictly between 0 and 1")
-
-    records = _load_rsicd_split(json_path, source_split)
-    if len(records) < 2:
-        raise ValueError(f"RSICD JSON {source_split!r} split must contain at least two records")
-
-    generator = torch.Generator().manual_seed(seed)
-    indices = torch.randperm(len(records), generator=generator).tolist()
-    train_size = int(len(records) * train_fraction)
-    train_records = [records[index] for index in indices[:train_size]]
-    validation_records = [records[index] for index in indices[train_size:]]
+    train_records, validation_records = split_rsicd_records(
+        json_path, source_split, train_fraction, seed
+    )
 
     return (
         RSICDSupervisedDataset(
