@@ -191,7 +191,7 @@ $$
 \mathcal{L}=\frac{1}{2}\left(\mathcal{L}_{t\rightarrow i}+\mathcal{L}_{i\rightarrow t}\right).
 $$
 
-Caption-less RSICD images are supported by the separate [SemiCLIP workflow](open-clip/configs/semiclip/README.md); `main_finetune.py` itself remains supervised-only.
+Caption-less RSICD images are supported by the separate [SemiCLIP workflow](open-clip/semiclip/README.md); `main_finetune.py` itself remains supervised-only.
 
 **Captions:** Each image's reconstructed caption strings are deduplicated while preserving first-seen order, then tokenized. With `all_unique`, the collate function flattens every retained caption and emits the caption-to-image index map \(g\). With `random_one`, it returns one deterministic sample keyed by seed, epoch, and image index. For example, if RSICD lists captions as:
 ```
@@ -242,4 +242,4 @@ See separate readme files under each config folder.
 Current experiments:
 1. Ablation study for fine-tuning hyper-parameters: [Readme here!](open-clip/configs/ablations/README.md)
 2. Evaluation of caption usage strategies: [Readme here!](open-clip/configs/experiment_caption_strategy/README.md)
-3. Two-stage SemiCLIP training with unlabeled RSICD images: [Readme here!](open-clip/configs/semiclip/README.md)
+3. Two-stage SemiCLIP training with unlabeled RSICD images: [Readme here!](open-clip/semiclip/README.md)
