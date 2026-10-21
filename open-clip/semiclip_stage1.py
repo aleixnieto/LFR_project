@@ -2,8 +2,10 @@
 
 import json
 import random
+import time
 from collections.abc import Iterable, Sequence
 from dataclasses import asdict
+from datetime import datetime
 from pathlib import Path
 
 import numpy as np
@@ -16,6 +18,11 @@ from semiclip_concepts import hash_filenames
 from semiclip_config import SemiCLIPConfig
 from semiclip_losses import stage1_loss_components
 from semiclip_model import ConceptClassifier
+
+
+def _progress(message: str) -> None:
+    timestamp = datetime.now().astimezone().strftime("%Y-%m-%d %H:%M:%S %Z")
+    print(f"[{timestamp}] {message}", flush=True)
 
 
 def _mean_metrics(rows: list[dict[str, float]]) -> dict[str, float]:
@@ -141,6 +148,7 @@ def train_stage1_epoch(
     classifier.train()
     rows: list[dict[str, float]] = []
     filenames: list[str] = []
+    total_batches = min(len(loader), max_batches or len(loader))
     for batch_index, batch in _bounded_batches(loader, max_batches):
         images = batch["images"].to(device)
         texts = batch["texts"].to(device)
@@ -176,6 +184,12 @@ def train_stage1_epoch(
                 "total_loss": float(total.detach()),
             }
         )
+        if (batch_index + 1) % 5 == 0 or batch_index + 1 == total_batches:
+            _progress(
+                f"Stage 1 epoch {epoch + 1}: batch {batch_index + 1}/{total_batches}, "
+                f"loss={float(total.detach()):.4f}, "
+                f"lr={optimizer.param_groups[0]['lr']:.3e}"
+            )
     metrics: dict[str, object] = _mean_metrics(rows)
     metrics.update(
         {
@@ -240,7 +254,8 @@ def cache_unlabeled_concept_logits(
     model.eval()
     classifier.eval()
     cached: dict[str, torch.Tensor] = {}
-    for _batch_index, batch in _bounded_batches(loader, max_batches):
+    total_batches = min(len(loader), max_batches or len(loader))
+    for batch_index, batch in _bounded_batches(loader, max_batches):
         logits = classifier(model.encode_image(batch["images"].to(device))).cpu()
         filenames = batch["filenames"]
         if logits.shape[0] != len(filenames):
@@ -249,6 +264,11 @@ def cache_unlabeled_concept_logits(
             if filename in cached:
                 raise ValueError(f"Duplicate unlabeled filename while caching: {filename}")
             cached[filename] = row.clone()
+        if (batch_index + 1) % 25 == 0 or batch_index + 1 == total_batches:
+            _progress(
+                f"Stage 1 cache: batch {batch_index + 1}/{total_batches}, "
+                f"images={len(cached)}"
+            )
     if not cached:
         raise ValueError("No unlabeled images were processed for the Stage-1 cache")
     return cached
@@ -332,9 +352,15 @@ def fit_stage1(
     optimizer, scheduler = create_stage1_optimizer_scheduler(
         model, classifier, config, config.stage1_epochs * batches_per_epoch
     )
+    _progress(
+        f"Stage 1 starting: epochs={config.stage1_epochs}, "
+        f"batches_per_epoch={batches_per_epoch}, concepts={len(concepts)}"
+    )
     history: list[dict[str, object]] = []
     best_loss = float("inf")
     for epoch in range(config.stage1_epochs):
+        epoch_started = time.perf_counter()
+        _progress(f"Stage 1 epoch {epoch + 1}/{config.stage1_epochs} starting")
         train_metrics = train_stage1_epoch(
             model,
             classifier,
@@ -356,8 +382,20 @@ def fit_stage1(
         }
         history.append(epoch_metrics)
         validation_loss = float(validation_metrics["clip_loss"])
+        _progress(
+            f"Stage 1 epoch {epoch + 1}/{config.stage1_epochs} complete in "
+            f"{time.perf_counter() - epoch_started:.1f}s: "
+            f"train={train_metrics['total_loss']:.4f}, "
+            f"clip={train_metrics['clip_loss']:.4f}, "
+            f"concept={train_metrics['concept_loss']:.4f}, "
+            f"validation={validation_loss:.4f}"
+        )
         if validation_loss < best_loss:
             best_loss = validation_loss
+            _progress(
+                f"Stage 1 new best validation loss {best_loss:.4f}; "
+                "saving stage1_best.pt"
+            )
             torch.save(
                 stage1_checkpoint_state(
                     model,
@@ -385,7 +423,9 @@ def fit_stage1(
         history,
     )
     final_path = output_dir / "stage1_final.pt"
+    _progress("Stage 1 training complete; saving stage1_final.pt")
     torch.save(final_state, final_path)
+    _progress("Stage 1 caching fixed logits for unlabeled images")
     cached = cache_unlabeled_concept_logits(
         model, classifier, unlabeled_loader, device, max_unlabeled_batches
     )
@@ -408,4 +448,8 @@ def fit_stage1(
     with (output_dir / "stage1_metrics.json").open("w", encoding="utf-8") as file:
         json.dump(summary, file, indent=2)
         file.write("\n")
+    _progress(
+        f"Stage 1 complete: best_validation={best_loss:.4f}, "
+        f"cached_images={len(cached)}"
+    )
     return summary

@@ -3,6 +3,7 @@
 import hashlib
 import json
 import random
+import time
 from collections.abc import Iterable, Mapping, Sequence
 from dataclasses import asdict, dataclass
 from pathlib import Path
@@ -17,7 +18,7 @@ from semiclip_concepts import hash_filenames
 from semiclip_config import SemiCLIPConfig
 from semiclip_losses import stage2_loss_components
 from semiclip_model import ConceptClassifier, SurrogateCaptionEncoder
-from semiclip_stage1 import restore_stage1_final, validate_stage1
+from semiclip_stage1 import _progress, restore_stage1_final, validate_stage1
 
 
 @dataclass(frozen=True)
@@ -102,12 +103,14 @@ def prepare_stage2(
     """Restore final Stage 1 before initializing the learnable prompt."""
     checkpoint_path = Path(stage1_checkpoint_path)
     cache_path = Path(stage1_cache_path)
+    _progress(f"Stage 2 loading final Stage-1 checkpoint: {checkpoint_path}")
     stage1_state = restore_stage1_final(checkpoint_path, model, classifier)
     concepts = stage1_state["concepts"]
     if config.concept_loss_top_k > len(concepts):
         raise ValueError("concept_loss_top_k exceeds the Stage-1 vocabulary")
     if config.surrogate_top_k > len(concepts):
         raise ValueError("surrogate_top_k exceeds the Stage-1 vocabulary")
+    _progress(f"Stage 2 loading fixed unlabeled cache: {cache_path}")
     cached, cache_state = load_stage1_logit_cache(cache_path, concepts)
     if cache_state.get("stage1_checkpoint") != checkpoint_path.name:
         raise ValueError("Stage-1 cache does not identify the supplied final checkpoint")
@@ -116,6 +119,10 @@ def prepare_stage2(
     prompt = SurrogateCaptionEncoder(
         model, tokenizer, concepts, config.surrogate_top_k
     ).to(device)
+    _progress(
+        f"Stage 2 inputs ready: concepts={len(concepts)}, "
+        f"cached_images={len(cached)}"
+    )
     provenance = {
         "checkpoint_path": str(checkpoint_path.resolve()),
         "checkpoint_sha256": _sha256_file(checkpoint_path),
@@ -216,6 +223,7 @@ def train_stage2_epoch(
     rows: list[dict[str, float]] = []
     labeled_filenames: list[str] = []
     unlabeled_filenames: list[str] = []
+    total_batches = min(len(labeled_loader), max_batches or len(labeled_loader))
     unlabeled_iterator = iter(unlabeled_loader)
     for batch_index, labeled in _bounded_batches(labeled_loader, max_batches):
         try:
@@ -289,6 +297,13 @@ def train_stage2_epoch(
                 "pseudo_concept_probability": float(top_probabilities.mean().detach()),
             }
         )
+        if (batch_index + 1) % 5 == 0 or batch_index + 1 == total_batches:
+            _progress(
+                f"Stage 2 epoch {epoch + 1}: batch {batch_index + 1}/{total_batches}, "
+                f"loss={float(total.detach()):.4f}, "
+                f"selected={details['selected_indices'].numel()}, "
+                f"lr={optimizer.param_groups[0]['lr']:.3e}"
+            )
     metrics: dict[str, object] = _mean_metrics(rows)
     metrics.update(
         {
@@ -429,6 +444,10 @@ def fit_stage2(
     optimizer, scheduler = create_stage2_optimizer_scheduler(
         model, classifier, prompt, config, total_steps
     )
+    _progress(
+        f"Stage 2 starting: epochs={config.stage2_epochs}, "
+        f"batches_per_epoch={batches_per_epoch}, total_steps={total_steps}"
+    )
     start_epoch = 0
     history: list[dict[str, object]] = []
     if resume_path is not None:
@@ -444,10 +463,16 @@ def fit_stage2(
         )
         start_epoch = int(resumed["epoch"]) + 1
         history = list(resumed["history"])
+        _progress(
+            f"Stage 2 resumed from epoch {start_epoch}; "
+            f"remaining={config.stage2_epochs - start_epoch}"
+        )
     if start_epoch >= config.stage2_epochs:
         raise ValueError("Stage-2 checkpoint has no remaining configured epochs")
 
     for epoch in range(start_epoch, config.stage2_epochs):
+        epoch_started = time.perf_counter()
+        _progress(f"Stage 2 epoch {epoch + 1}/{config.stage2_epochs} starting")
         train_metrics = train_stage2_epoch(
             model,
             classifier,
@@ -472,6 +497,18 @@ def fit_stage2(
                 "validation": validation_metrics,
             }
         )
+        _progress(
+            f"Stage 2 epoch {epoch + 1}/{config.stage2_epochs} complete in "
+            f"{time.perf_counter() - epoch_started:.1f}s: "
+            f"total={train_metrics['total_loss']:.4f}, "
+            f"clip={train_metrics['clip_loss']:.4f}, "
+            f"semantic={train_metrics['concept_loss']:.4f}, "
+            f"intra={train_metrics['intramodal_loss']:.4f}, "
+            f"cross={train_metrics['crossmodal_loss']:.4f}, "
+            f"validation={validation_metrics['clip_loss']:.4f}, "
+            f"selected={train_metrics['selected_pairs_total']}"
+        )
+        _progress("Stage 2 saving stage2_last.pt")
         torch.save(
             stage2_checkpoint_state(
                 model,
@@ -502,6 +539,7 @@ def fit_stage2(
         history,
         stage1_provenance,
     )
+    _progress("Stage 2 training complete; saving stage2_final.pt")
     torch.save(final_state, output_dir / "stage2_final.pt")
     summary = {
         "epochs": history,
@@ -511,4 +549,8 @@ def fit_stage2(
     with (output_dir / "stage2_metrics.json").open("w", encoding="utf-8") as file:
         json.dump(summary, file, indent=2)
         file.write("\n")
+    _progress(
+        f"Stage 2 complete: epochs={len(history)}, "
+        f"final_validation={history[-1]['validation']['clip_loss']:.4f}"
+    )
     return summary
