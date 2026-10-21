@@ -7,6 +7,7 @@ IMPLEMENTING DATALOADER FOR RSICD DATASET
 """
 
 import json
+from collections.abc import Mapping, Sequence
 from pathlib import Path
 from typing import Callable
 from torch.utils.data import Dataset, DataLoader
@@ -50,6 +51,31 @@ def _load_transformed_image(image_dir: Path, filename: str, transform: Callable)
     """Open an RSICD image as RGB and apply caller-supplied preprocessing."""
     with Image.open(image_dir / filename) as image:
         return transform(image.convert("RGB"))
+
+
+def _validated_record_filename(
+    image_dir: Path,
+    record: Mapping[str, object],
+    dataset_name: str,
+) -> str:
+    """Validate and return the filename shared by RSICD dataset variants."""
+    filename = record.get("filename")
+    if not isinstance(filename, str) or not filename:
+        raise ValueError(f"{dataset_name} record has no valid filename: {record!r}")
+    image_path = image_dir / filename
+    if not image_path.is_file():
+        raise FileNotFoundError(f"RSICD image does not exist: {image_path}")
+    return filename
+
+
+def _validated_text_tokens(tokenizer: Callable, texts: Sequence[str]) -> torch.Tensor:
+    """Tokenize text rows and enforce the common OpenCLIP tensor contract."""
+    tokens = tokenizer(list(texts))
+    if not isinstance(tokens, torch.Tensor) or tokens.ndim != 2:
+        raise TypeError(
+            "Tokenizer must return a [num_texts, context_length] torch.Tensor"
+        )
+    return tokens
 
 
 class RSICDZeroShotDataset(Dataset):
@@ -131,6 +157,40 @@ class RSICDZeroShotDataset(Dataset):
         return image_tensor, self.filename_to_class[filename], filename
 
 
+class RSICDImageOnlyDataset(Dataset):
+    """Load one JSON split strictly as images and never expose its captions."""
+
+    def __init__(
+        self,
+        image_dir: str | Path,
+        json_path: str | Path,
+        transform: Callable,
+        split: str,
+        max_samples: int | None = None,
+    ) -> None:
+        self.image_dir, self.json_path = _validate_rsicd_paths(image_dir, json_path)
+        self.transform = transform
+        records = _load_rsicd_split(self.json_path, split)
+        if max_samples is not None:
+            if max_samples <= 0:
+                raise ValueError("max_samples must be positive")
+            records = records[:max_samples]
+        if not records:
+            raise ValueError(f"No {split!r}-split images found in: {self.json_path}")
+        self.filenames = [
+            _validated_record_filename(self.image_dir, record, "RSICD")
+            for record in records
+        ]
+
+    def __len__(self) -> int:
+        return len(self.filenames)
+
+    def __getitem__(self, index: int):
+        filename = self.filenames[index]
+        image = _load_transformed_image(self.image_dir, filename, self.transform)
+        return image, filename
+
+
 class RSICDSupervisedDataset(Dataset):
     """Captioned RSICD records for OpenCLIP supervised fine-tuning."""
 
@@ -165,11 +225,7 @@ class RSICDSupervisedDataset(Dataset):
         self.filenames: list[str] = []
         self.caption_tokens: list[torch.Tensor] = []
         for record in self.records:
-            filename = record.get("filename")
-            if not filename:
-                raise ValueError(f"RSICD record has no filename: {record!r}")
-            if not (self.image_dir / filename).is_file():
-                raise FileNotFoundError(f"RSICD image does not exist: {self.image_dir / filename}")
+            filename = _validated_record_filename(self.image_dir, record, "RSICD")
 
             captions = list(
                 dict.fromkeys(
@@ -181,11 +237,7 @@ class RSICDSupervisedDataset(Dataset):
             if not captions:
                 raise ValueError(f"RSICD image has no captions: {filename}")
 
-            tokens = self.tokenizer(captions)
-            if not isinstance(tokens, torch.Tensor) or tokens.ndim != 2:
-                raise TypeError(
-                    "Tokenizer must return a [num_captions, context_length] torch.Tensor"
-                )
+            tokens = _validated_text_tokens(self.tokenizer, captions)
             self.filenames.append(filename)
             self.caption_tokens.append(tokens)
 
