@@ -15,14 +15,14 @@ PROJECT_ROOT = Path(__file__).resolve().parents[1]
 OPEN_CLIP_DIR = PROJECT_ROOT / "open-clip"
 sys.path.insert(0, str(OPEN_CLIP_DIR))
 
-from semiclip_concepts import hash_filenames  # noqa: E402
-from semiclip_config import load_semiclip_config  # noqa: E402
-from semiclip_model import (  # noqa: E402
+from semiclip.concepts import hash_filenames  # noqa: E402
+from semiclip.config import load_semiclip_config  # noqa: E402
+from semiclip.model import (  # noqa: E402
     ConceptClassifier,
     SurrogateCaptionEncoder,
     encode_text_embeddings,
 )
-from semiclip_stage2 import (  # noqa: E402
+from semiclip.stage2 import (  # noqa: E402
     create_stage2_optimizer_scheduler,
     fit_stage2,
     load_stage1_logit_cache,
@@ -33,7 +33,7 @@ from semiclip_stage2 import (  # noqa: E402
 )
 
 
-DEFAULT_CONFIG = OPEN_CLIP_DIR / "configs" / "semiclip" / "semiclip_rsicd.yaml"
+DEFAULT_CONFIG = OPEN_CLIP_DIR / "semiclip" / "configs" / "semiclip_rsicd.yaml"
 CONCEPTS = ["airport", "road", "river", "field"]
 
 

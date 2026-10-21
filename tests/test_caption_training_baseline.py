@@ -169,6 +169,28 @@ class CaptionDatasetBaselineTests(unittest.TestCase):
 
         self.assertEqual(config.dataset_split, "val")
 
+    def test_control_config_matches_semiclip_stage1_optimization(self) -> None:
+        config_path = (
+            OPEN_CLIP_DIR
+            / "semiclip"
+            / "configs"
+            / "supervised_random_control_paper_1gpu.yaml"
+        )
+
+        config = load_config(config_path)
+
+        self.assertEqual(config.caption_policy, "random_one")
+        self.assertEqual(config.batch_size, 32)
+        self.assertEqual(config.epochs, 25)
+        self.assertEqual(config.optimizer, "adamw")
+        self.assertEqual(config.scheduler, "cosine")
+        self.assertEqual(config.warmup_steps, 10)
+        self.assertEqual(config.validation_batch_size, 64)
+        self.assertEqual(config.shuffle_seed_offset, 1)
+        self.assertAlmostEqual(config.learning_rate, 5e-5)
+        self.assertAlmostEqual(config.weight_decay, 5e-4)
+        self.assertTrue(config.drop_last)
+
 
 class SupervisedLossBaselineTests(unittest.TestCase):
     def test_loss_matches_caption_mean_and_multi_positive_image_targets(self) -> None:

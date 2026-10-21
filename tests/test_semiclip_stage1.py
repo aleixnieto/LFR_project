@@ -16,9 +16,9 @@ PROJECT_ROOT = Path(__file__).resolve().parents[1]
 OPEN_CLIP_DIR = PROJECT_ROOT / "open-clip"
 sys.path.insert(0, str(OPEN_CLIP_DIR))
 
-from semiclip_config import load_semiclip_config  # noqa: E402
-from semiclip_model import ConceptClassifier  # noqa: E402
-from semiclip_stage1 import (  # noqa: E402
+from semiclip.config import load_semiclip_config  # noqa: E402
+from semiclip.model import ConceptClassifier  # noqa: E402
+from semiclip.stage1 import (  # noqa: E402
     cache_unlabeled_concept_logits,
     create_stage1_optimizer_scheduler,
     fit_stage1,
@@ -29,7 +29,7 @@ from semiclip_stage1 import (  # noqa: E402
 )
 
 
-DEFAULT_CONFIG = OPEN_CLIP_DIR / "configs" / "semiclip" / "semiclip_rsicd.yaml"
+DEFAULT_CONFIG = OPEN_CLIP_DIR / "semiclip" / "configs" / "semiclip_rsicd.yaml"
 
 
 class TinyModel(nn.Module):

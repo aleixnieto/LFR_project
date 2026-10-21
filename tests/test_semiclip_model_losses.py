@@ -13,7 +13,7 @@ PROJECT_ROOT = Path(__file__).resolve().parents[1]
 OPEN_CLIP_DIR = PROJECT_ROOT / "open-clip"
 sys.path.insert(0, str(OPEN_CLIP_DIR))
 
-from semiclip_losses import (  # noqa: E402
+from semiclip.losses import (  # noqa: E402
     clip_contrastive_loss,
     normalized_multihot,
     pseudo_concept_targets,
@@ -23,7 +23,7 @@ from semiclip_losses import (  # noqa: E402
     stage2_loss_components,
     trapezoidal_consistency_losses,
 )
-from semiclip_model import (  # noqa: E402
+from semiclip.model import (  # noqa: E402
     ConceptClassifier,
     SurrogateCaptionEncoder,
     encode_text_embeddings,

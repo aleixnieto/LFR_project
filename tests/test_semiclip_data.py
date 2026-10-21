@@ -18,9 +18,9 @@ PROJECT_ROOT = Path(__file__).resolve().parents[1]
 OPEN_CLIP_DIR = PROJECT_ROOT / "open-clip"
 sys.path.insert(0, str(OPEN_CLIP_DIR))
 
-from semiclip_augment import RandAugmentMC  # noqa: E402
-from semiclip_config import load_semiclip_config  # noqa: E402
-from semiclip_data import (  # noqa: E402
+from semiclip.augment import RandAugmentMC  # noqa: E402
+from semiclip.config import load_semiclip_config  # noqa: E402
+from semiclip.data import (  # noqa: E402
     ConceptLabeledDataset,
     WeakStrongTransform,
     build_semiclip_datasets,
@@ -30,7 +30,7 @@ from semiclip_data import (  # noqa: E402
 )
 
 
-DEFAULT_CONFIG = OPEN_CLIP_DIR / "configs" / "semiclip" / "semiclip_rsicd.yaml"
+DEFAULT_CONFIG = OPEN_CLIP_DIR / "semiclip" / "configs" / "semiclip_rsicd.yaml"
 
 
 def tensor_transform(image: Image.Image) -> torch.Tensor:

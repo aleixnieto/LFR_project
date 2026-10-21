@@ -14,15 +14,15 @@ OPEN_CLIP_DIR = PROJECT_ROOT / "open-clip"
 sys.path.insert(0, str(OPEN_CLIP_DIR))
 
 from dataloader import split_rsicd_records  # noqa: E402
-from semiclip_concepts import (  # noqa: E402
+from semiclip.concepts import (  # noqa: E402
     hash_filenames,
     mine_semantic_concepts,
     write_concept_artifact,
 )
-from semiclip_config import load_semiclip_config  # noqa: E402
+from semiclip.config import load_semiclip_config  # noqa: E402
 
 
-DEFAULT_CONFIG = OPEN_CLIP_DIR / "configs" / "semiclip" / "semiclip_rsicd.yaml"
+DEFAULT_CONFIG = OPEN_CLIP_DIR / "semiclip" / "configs" / "semiclip_rsicd.yaml"
 
 
 def fake_tokenize(text: str) -> list[str]:
