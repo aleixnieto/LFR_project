@@ -6,6 +6,9 @@ from pathlib import Path
 import yaml
 
 
+CAPTION_POLICIES = frozenset({"all_unique", "random_one"})
+
+
 @dataclass(frozen=True)
 class SemiCLIPConfig:
     model_name: str
@@ -37,6 +40,7 @@ class SemiCLIPConfig:
     intramodal_loss_weight: float
     crossmodal_loss_weight: float
     output_dir: Path
+    caption_policy: str = "random_one"
 
     @property
     def labeled_batch_size(self) -> int:
@@ -113,6 +117,12 @@ def load_semiclip_config(config_path: str | Path) -> SemiCLIPConfig:
         raise ValueError("labeled_split and unlabeled_split must be distinct")
     if "test" in {values["labeled_split"], values["unlabeled_split"]}:
         raise ValueError("The RSICD test split cannot be used for SemiCLIP training")
+    caption_policy = values.get("caption_policy", "random_one")
+    if caption_policy not in CAPTION_POLICIES:
+        choices = ", ".join(sorted(CAPTION_POLICIES))
+        raise ValueError(
+            f"caption_policy must be one of: {choices}; got {caption_policy!r}"
+        )
     if not 0 < numbers["supervised_train_fraction"] < 1:
         raise ValueError("supervised_train_fraction must be strictly between zero and one")
     if numbers["total_batch_size"] < 2 or numbers["total_batch_size"] % 2:
@@ -179,4 +189,5 @@ def load_semiclip_config(config_path: str | Path) -> SemiCLIPConfig:
         intramodal_loss_weight=numbers["intramodal_loss_weight"],
         crossmodal_loss_weight=numbers["crossmodal_loss_weight"],
         output_dir=_resolve(config_path, values["output_dir"]),
+        caption_policy=caption_policy,
     )

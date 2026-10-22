@@ -9,6 +9,7 @@ labeled_split: val
 unlabeled_split: train
 supervised_train_fraction: 0.8
 seed: 42
+caption_policy: random_one
 
 # Single-GPU setting: 32 labeled and 32 unlabeled samples per Stage-2 update.
 total_batch_size: 64

@@ -72,6 +72,7 @@ def training_batch() -> dict[str, object]:
             [[1.0, 0.0, 0.5, 0.0], [0.0, 1.0, 0.0, 0.5]]
         ),
         "texts": torch.tensor([[1, 2], [3, 4]]),
+        "caption_to_image": torch.tensor([0, 1]),
         "concept_targets": torch.tensor([[1.0, 1.0, 0.0], [0.0, 0.0, 0.0]]),
         "filenames": ["labeled_a.jpg", "labeled_b.jpg"],
     }
@@ -151,6 +152,7 @@ class Stage1NumericalTests(unittest.TestCase):
         self.assertFalse(torch.equal(before, self.model.image_projection.weight))
         self.assertEqual(train_metrics["batches"], 1)
         self.assertEqual(train_metrics["images"], 2)
+        self.assertEqual(train_metrics["captions"], 2)
         self.assertIn("clip_loss", train_metrics)
         self.assertIn("concept_loss", train_metrics)
         self.assertIn("image_order_sha256", train_metrics)

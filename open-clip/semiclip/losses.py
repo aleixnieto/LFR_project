@@ -26,6 +26,59 @@ def clip_contrastive_loss(
     ) / 2
 
 
+def multi_caption_clip_loss(
+    image_features: torch.Tensor,
+    text_features: torch.Tensor,
+    caption_to_image: torch.Tensor,
+    logit_scale: torch.Tensor,
+) -> torch.Tensor:
+    """Symmetric per-caption CLIP loss with all source captions positive."""
+    if image_features.ndim != 2 or text_features.ndim != 2:
+        raise ValueError("CLIP features must be two-dimensional")
+    if image_features.shape[1] != text_features.shape[1]:
+        raise ValueError("Image and text features must share an embedding dimension")
+    if caption_to_image.shape != (text_features.shape[0],):
+        raise ValueError("caption_to_image must map every text feature")
+    if caption_to_image.numel() == 0 or caption_to_image.min().item() < 0:
+        raise ValueError("caption_to_image must contain valid image indices")
+    if caption_to_image.max().item() >= image_features.shape[0]:
+        raise ValueError("caption_to_image contains an out-of-range image index")
+    images = functional.normalize(image_features, dim=-1)
+    texts = functional.normalize(text_features, dim=-1)
+    text_to_image = logit_scale * texts @ images.T
+    text_loss = functional.cross_entropy(text_to_image, caption_to_image)
+    targets = functional.one_hot(
+        caption_to_image, num_classes=image_features.shape[0]
+    ).T.to(text_to_image.dtype)
+    positives = targets.sum(dim=1, keepdim=True)
+    if torch.any(positives == 0):
+        raise ValueError("Every image must have at least one caption")
+    image_loss = -(
+        (targets / positives) * functional.log_softmax(text_to_image.T, dim=1)
+    ).sum(dim=1).mean()
+    return (text_loss + image_loss) / 2
+
+
+def pool_caption_features(
+    text_features: torch.Tensor, caption_to_image: torch.Tensor, num_images: int
+) -> torch.Tensor:
+    """Mean-pool variable captions into one deterministic feature per image."""
+    if text_features.ndim != 2 or num_images <= 0:
+        raise ValueError("text_features must be [captions, dim] and num_images positive")
+    if caption_to_image.shape != (text_features.shape[0],):
+        raise ValueError("caption_to_image must map every text feature")
+    if caption_to_image.numel() == 0 or caption_to_image.min().item() < 0:
+        raise ValueError("caption_to_image must contain valid image indices")
+    if caption_to_image.max().item() >= num_images:
+        raise ValueError("caption_to_image contains an out-of-range image index")
+    pooled = torch.zeros((num_images, text_features.shape[1]), dtype=text_features.dtype, device=text_features.device)
+    pooled.index_add_(0, caption_to_image, text_features)
+    counts = torch.bincount(caption_to_image, minlength=num_images)
+    if torch.any(counts == 0):
+        raise ValueError("Every image must have at least one caption")
+    return pooled / counts.to(text_features.dtype).unsqueeze(1)
+
+
 def soft_cross_entropy(
     logits: torch.Tensor,
     targets: torch.Tensor,
@@ -123,14 +176,18 @@ def stage1_loss_components(
     concept_logits: torch.Tensor,
     concept_targets: torch.Tensor,
     logit_scale: torch.Tensor,
+    caption_to_image: torch.Tensor | None = None,
     clip_weight: float = 1.0,
     concept_weight: float = 1.0,
 ) -> dict[str, torch.Tensor]:
     return {
-        "clip_loss": clip_contrastive_loss(
-            image_features, text_features, logit_scale
-        )
-        * clip_weight,
+        "clip_loss": (
+            clip_contrastive_loss(image_features, text_features, logit_scale)
+            if caption_to_image is None
+            else multi_caption_clip_loss(
+                image_features, text_features, caption_to_image, logit_scale
+            )
+        ) * clip_weight,
         "concept_loss": soft_cross_entropy(concept_logits, concept_targets)
         * concept_weight,
     }
@@ -146,6 +203,7 @@ def stage2_loss_components(
     logit_scale: torch.Tensor,
     concept_top_k: int,
     selection_ratio: float,
+    caption_to_image: torch.Tensor | None = None,
     clip_weight: float = 1.0,
     concept_weight: float = 1.0,
     intramodal_weight: float = 1.0,
@@ -157,18 +215,26 @@ def stage2_loss_components(
     selected, similarities = select_surrogate_pairs(
         unlabeled_image_features, surrogate_features, selection_ratio
     )
+    pooled_labeled_text_features = (
+        labeled_text_features if caption_to_image is None else pool_caption_features(
+            labeled_text_features, caption_to_image, labeled_image_features.shape[0]
+        )
+    )
     intramodal, crossmodal = trapezoidal_consistency_losses(
         labeled_image_features,
-        labeled_text_features,
+        pooled_labeled_text_features,
         unlabeled_image_features[selected],
         surrogate_features[selected],
         logit_scale,
     )
     losses = {
-        "clip_loss": clip_contrastive_loss(
-            labeled_image_features, labeled_text_features, logit_scale
-        )
-        * clip_weight,
+        "clip_loss": (
+            clip_contrastive_loss(
+                labeled_image_features, labeled_text_features, logit_scale
+            ) if caption_to_image is None else multi_caption_clip_loss(
+                labeled_image_features, labeled_text_features, caption_to_image, logit_scale
+            )
+        ) * clip_weight,
         "concept_loss": soft_cross_entropy(
             strong_concept_logits, pseudo_targets
         )

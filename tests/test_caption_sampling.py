@@ -22,6 +22,7 @@ from dataloader import (  # noqa: E402
     collate_supervised_captions,
 )
 from main_finetune import hash_filename_order, load_config  # noqa: E402
+from semiclip.data import ConceptLabeledDataset, collate_concept_labeled  # noqa: E402
 
 
 class IndexTokenizer:
@@ -154,6 +155,23 @@ class RandomCaptionSamplingTests(unittest.TestCase):
             torch.testing.assert_close(
                 dataset.selected_caption_tokens(0), torch.arange(5).unsqueeze(1)
             )
+
+    def test_semiclip_collate_preserves_all_unique_caption_mapping(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            root = Path(temporary_directory)
+            records = make_records(2, caption_count=2)
+            records[0]["sentences"].append({"tokens": ["caption", "0"]})
+            image_dir = root / "images"
+            write_images(image_dir, records)
+            base = self.make_dataset(image_dir, records, policy="all_unique")
+            dataset = ConceptLabeledDataset(
+                base, {filename: (0,) for filename in base.filenames}, num_concepts=1
+            )
+            batch = collate_concept_labeled([dataset[0], dataset[1]])
+
+            self.assertEqual(tuple(batch["texts"].shape), (4, 1))
+            torch.testing.assert_close(batch["caption_to_image"], torch.tensor([0, 0, 1, 1]))
+            self.assertEqual(tuple(batch["concept_targets"].shape), (2, 1))
 
     def test_validation_always_uses_all_unique_captions(self) -> None:
         with tempfile.TemporaryDirectory() as temporary_directory:

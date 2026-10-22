@@ -117,6 +117,7 @@ def labeled_batch(tokenizer: TinyTokenizer) -> dict[str, object]:
             [[1.0, 0.0, 0.5, 0.0], [0.0, 1.0, 0.0, 0.5]]
         ),
         "texts": tokenizer(["labeled one", "labeled two"]),
+        "caption_to_image": torch.tensor([0, 1]),
         "concept_targets": torch.zeros(2, len(CONCEPTS)),
         "filenames": ["labeled_a.jpg", "labeled_b.jpg"],
     }

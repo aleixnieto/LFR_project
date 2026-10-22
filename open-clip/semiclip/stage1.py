@@ -10,13 +10,12 @@ from pathlib import Path
 
 import numpy as np
 import torch
-import torch.nn.functional as functional
 from torch import nn
 from transformers import get_scheduler
 
 from semiclip.concepts import hash_filenames
 from semiclip.config import SemiCLIPConfig
-from semiclip.losses import stage1_loss_components
+from semiclip.losses import multi_caption_clip_loss, stage1_loss_components
 from semiclip.model import ConceptClassifier
 
 
@@ -47,40 +46,6 @@ def _bounded_batches(loader: Iterable, maximum: int | None):
         if maximum is not None and index >= maximum:
             break
         yield index, batch
-
-
-def multi_caption_clip_loss(
-    image_features: torch.Tensor,
-    text_features: torch.Tensor,
-    caption_to_image: torch.Tensor,
-    logit_scale: torch.Tensor,
-) -> torch.Tensor:
-    """Symmetric validation loss with every source caption treated as positive."""
-    if image_features.ndim != 2 or text_features.ndim != 2:
-        raise ValueError("Image and text features must be two-dimensional")
-    if image_features.shape[1] != text_features.shape[1]:
-        raise ValueError("Image and text features must share an embedding dimension")
-    if caption_to_image.shape != (text_features.shape[0],):
-        raise ValueError("caption_to_image must map every text feature")
-    if caption_to_image.numel() == 0 or caption_to_image.min().item() < 0:
-        raise ValueError("caption_to_image must contain valid image indices")
-    if caption_to_image.max().item() >= image_features.shape[0]:
-        raise ValueError("caption_to_image contains an out-of-range image index")
-
-    images = functional.normalize(image_features, dim=-1)
-    texts = functional.normalize(text_features, dim=-1)
-    text_to_image = logit_scale * texts @ images.T
-    text_loss = functional.cross_entropy(text_to_image, caption_to_image)
-    image_to_text = text_to_image.T
-    targets = functional.one_hot(
-        caption_to_image, num_classes=image_features.shape[0]
-    ).T.to(image_to_text.dtype)
-    positives = targets.sum(dim=1, keepdim=True)
-    if torch.any(positives == 0):
-        raise ValueError("Every validation image must have at least one caption")
-    targets = targets / positives
-    image_loss = -(targets * functional.log_softmax(image_to_text, dim=1)).sum(1).mean()
-    return (text_loss + image_loss) / 2
 
 
 def create_stage1_optimizer_scheduler(
@@ -148,12 +113,15 @@ def train_stage1_epoch(
     classifier.train()
     rows: list[dict[str, float]] = []
     filenames: list[str] = []
+    captions = 0
     total_batches = min(len(loader), max_batches or len(loader))
     for batch_index, batch in _bounded_batches(loader, max_batches):
         images = batch["images"].to(device)
         texts = batch["texts"].to(device)
+        caption_to_image = batch["caption_to_image"].to(device)
         targets = _normalized_targets(batch["concept_targets"].to(device))
         filenames.extend(batch["filenames"])
+        captions += int(texts.shape[0])
         optimizer.zero_grad(set_to_none=True)
         image_features = model.encode_image(images)
         text_features = model.encode_text(texts)
@@ -164,6 +132,7 @@ def train_stage1_epoch(
             concept_logits,
             targets,
             model.logit_scale.exp(),
+            caption_to_image=caption_to_image,
             clip_weight=config.clip_loss_weight,
             concept_weight=config.concept_loss_weight,
         )
@@ -196,6 +165,8 @@ def train_stage1_epoch(
             "epoch": epoch,
             "batches": len(rows),
             "images": len(filenames),
+            "captions": captions,
+            "captions_per_image": captions / len(filenames),
             "image_order_sha256": hash_filenames(filenames),
             "learning_rate": float(optimizer.param_groups[0]["lr"]),
             "logit_scale": float(model.logit_scale.detach().exp()),
@@ -215,10 +186,12 @@ def validate_stage1(
     model.eval()
     rows: list[dict[str, float]] = []
     filenames: list[str] = []
+    captions = 0
     for batch_index, batch in _bounded_batches(loader, max_batches):
         images = batch["images"].to(device)
         texts = batch["texts"].to(device)
         caption_to_image = batch["caption_to_image"].to(device)
+        captions += int(texts.shape[0])
         loss = multi_caption_clip_loss(
             model.encode_image(images),
             model.encode_text(texts),
@@ -236,6 +209,8 @@ def validate_stage1(
         {
             "batches": len(rows),
             "images": len(filenames),
+            "captions": captions,
+            "captions_per_image": captions / len(filenames),
             "image_order_sha256": hash_filenames(filenames),
         }
     )

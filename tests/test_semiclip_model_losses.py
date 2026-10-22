@@ -15,7 +15,9 @@ sys.path.insert(0, str(OPEN_CLIP_DIR))
 
 from semiclip.losses import (  # noqa: E402
     clip_contrastive_loss,
+    multi_caption_clip_loss,
     normalized_multihot,
+    pool_caption_features,
     pseudo_concept_targets,
     select_surrogate_pairs,
     soft_cross_entropy,
@@ -141,6 +143,24 @@ class SemiCLIPLossTests(unittest.TestCase):
             clip_contrastive_loss(images, texts, scale), expected_clip
         )
         torch.testing.assert_close(soft_cross_entropy(logits, targets), expected_soft)
+
+    def test_multi_caption_loss_pools_positives_and_matches_one_to_one(self) -> None:
+        images = torch.tensor([[1.0, 0.0], [0.0, 1.0]], requires_grad=True)
+        texts = torch.tensor([[1.0, 0.0], [0.8, 0.2], [0.0, 1.0]], requires_grad=True)
+        mapping = torch.tensor([0, 0, 1])
+        loss = multi_caption_clip_loss(images, texts, mapping, torch.tensor(2.0))
+        self.assertTrue(torch.isfinite(loss))
+        loss.backward()
+        self.assertIsNotNone(images.grad)
+        pooled = pool_caption_features(texts.detach(), mapping, 2)
+        torch.testing.assert_close(pooled, torch.tensor([[0.9, 0.1], [0.0, 1.0]]))
+        one_to_one = multi_caption_clip_loss(
+            images.detach(), texts.detach()[torch.tensor([0, 2])], torch.tensor([0, 1]), torch.tensor(2.0)
+        )
+        torch.testing.assert_close(
+            one_to_one,
+            clip_contrastive_loss(images.detach(), texts.detach()[torch.tensor([0, 2])], torch.tensor(2.0)),
+        )
 
     def test_topk_pseudo_targets_are_normalized_multihot(self) -> None:
         cached = torch.tensor([[4.0, 3.0, 2.0, 1.0], [0.0, 2.0, 3.0, 1.0]])

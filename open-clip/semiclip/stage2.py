@@ -105,6 +105,9 @@ def prepare_stage2(
     cache_path = Path(stage1_cache_path)
     _progress(f"Stage 2 loading final Stage-1 checkpoint: {checkpoint_path}")
     stage1_state = restore_stage1_final(checkpoint_path, model, classifier)
+    checkpoint_policy = stage1_state.get("config", {}).get("caption_policy", "random_one")
+    if checkpoint_policy != config.caption_policy:
+        raise ValueError("Stage-1 checkpoint caption_policy does not match the Stage-2 configuration")
     concepts = stage1_state["concepts"]
     if config.concept_loss_top_k > len(concepts):
         raise ValueError("concept_loss_top_k exceeds the Stage-1 vocabulary")
@@ -222,6 +225,7 @@ def train_stage2_epoch(
     prompt.train()
     rows: list[dict[str, float]] = []
     labeled_filenames: list[str] = []
+    labeled_captions = 0
     unlabeled_filenames: list[str] = []
     total_batches = min(len(labeled_loader), max_batches or len(labeled_loader))
     unlabeled_iterator = iter(unlabeled_loader)
@@ -245,9 +249,11 @@ def train_stage2_epoch(
 
         images = labeled["images"].to(device)
         texts = labeled["texts"].to(device)
+        caption_to_image = labeled["caption_to_image"].to(device)
         weak_images = unlabeled["weak_images"].to(device)
         strong_images = unlabeled["strong_images"].to(device)
         labeled_filenames.extend(labeled["filenames"])
+        labeled_captions += int(texts.shape[0])
         unlabeled_filenames.extend(filenames)
 
         optimizer.zero_grad(set_to_none=True)
@@ -265,6 +271,7 @@ def train_stage2_epoch(
             weak_features,
             surrogate_features,
             model.logit_scale.exp(),
+            caption_to_image=caption_to_image,
             concept_top_k=config.concept_loss_top_k,
             selection_ratio=config.selection_ratio,
             clip_weight=config.clip_loss_weight,
@@ -310,6 +317,8 @@ def train_stage2_epoch(
             "epoch": epoch,
             "batches": len(rows),
             "labeled_images": len(labeled_filenames),
+            "labeled_captions": labeled_captions,
+            "labeled_captions_per_image": labeled_captions / len(labeled_filenames),
             "unlabeled_images": len(unlabeled_filenames),
             "selected_pairs_total": int(
                 sum(row["selected_pairs"] for row in rows)

@@ -123,7 +123,7 @@ def build_semiclip_datasets(
         train_records,
         weak_transform,
         tokenizer,
-        caption_policy="random_one",
+        caption_policy=config.caption_policy,
         sampling_seed=config.seed,
     )
     labeled_validation = RSICDSupervisedDataset(
@@ -159,11 +159,16 @@ def build_semiclip_datasets(
 
 def collate_concept_labeled(batch) -> dict[str, object]:
     images, caption_batches, concept_targets, filenames = zip(*batch)
-    if any(tokens.shape[0] != 1 for tokens in caption_batches):
-        raise ValueError("SemiCLIP training requires exactly one caption per image")
+    caption_to_image = torch.cat(
+        [
+            torch.full((tokens.shape[0],), image_index, dtype=torch.long)
+            for image_index, tokens in enumerate(caption_batches)
+        ]
+    )
     return {
         "images": torch.stack(images),
         "texts": torch.cat(caption_batches),
+        "caption_to_image": caption_to_image,
         "concept_targets": torch.stack(concept_targets),
         "filenames": list(filenames),
     }

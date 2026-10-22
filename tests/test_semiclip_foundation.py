@@ -54,6 +54,7 @@ class SemiCLIPConfigTests(unittest.TestCase):
         self.assertEqual((config.concept_loss_top_k, config.surrogate_top_k), (3, 4))
         self.assertEqual(config.selection_ratio, 0.3)
         self.assertEqual(config.weight_decay, 0.2)
+        self.assertEqual(config.caption_policy, "random_one")
 
     def test_config_rejects_test_leakage_and_empty_selection(self) -> None:
         values = yaml.safe_load(DEFAULT_CONFIG.read_text(encoding="utf-8"))
@@ -70,6 +71,23 @@ class SemiCLIPConfigTests(unittest.TestCase):
             selection_path.write_text(yaml.safe_dump(no_selection), encoding="utf-8")
             with self.assertRaisesRegex(ValueError, "at least one"):
                 load_semiclip_config(selection_path)
+
+    def test_config_defaults_caption_policy_for_backward_compatibility(self) -> None:
+        values = yaml.safe_load(DEFAULT_CONFIG.read_text(encoding="utf-8"))
+        values.pop("caption_policy")
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            path = Path(temporary_directory) / "legacy.yaml"
+            path.write_text(yaml.safe_dump(values), encoding="utf-8")
+            self.assertEqual(load_semiclip_config(path).caption_policy, "random_one")
+
+    def test_config_rejects_unknown_caption_policy(self) -> None:
+        values = yaml.safe_load(DEFAULT_CONFIG.read_text(encoding="utf-8"))
+        values["caption_policy"] = "invalid"
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            path = Path(temporary_directory) / "invalid_caption_policy.yaml"
+            path.write_text(yaml.safe_dump(values), encoding="utf-8")
+            with self.assertRaisesRegex(ValueError, "caption_policy"):
+                load_semiclip_config(path)
 
     def test_record_split_is_deterministic_and_whole_image_based(self) -> None:
         with tempfile.TemporaryDirectory() as temporary_directory:
