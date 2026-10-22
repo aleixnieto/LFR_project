@@ -1,0 +1,44 @@
+{
+  "models": [
+    {
+      "label": "non_finetuned_baseline",
+      "checkpoint_path": "/home/casko/phd-code/LFR_project/weights/open_clip/ViT-B-32-laion2b_s34b_b79k.bin",
+      "checkpoint_type": "openclip",
+      "num_samples": 1093,
+      "accuracy": 0.6267154620311071,
+      "weighted_precision": 0.6159655254269344,
+      "weighted_recall": 0.6267154620311071,
+      "weighted_f1": 0.5908988567114914
+    },
+    {
+      "label": "all_unique_per_caption",
+      "checkpoint_path": "/home/casko/phd-code/LFR_project/results/experiment_caption_strategy_2/open_clip_finetune_all_unique_per_caption/ckp_best.pth",
+      "checkpoint_type": "finetune",
+      "num_samples": 1093,
+      "accuracy": 0.8627630375114365,
+      "weighted_precision": 0.8835010978149095,
+      "weighted_recall": 0.8627630375114365,
+      "weighted_f1": 0.8496433215651146
+    },
+    {
+      "label": "random_one_per_caption",
+      "checkpoint_path": "/home/casko/phd-code/LFR_project/results/experiment_caption_strategy_2/open_clip_finetune_random_one_per_caption/ckp_best.pth",
+      "checkpoint_type": "finetune",
+      "num_samples": 1093,
+      "accuracy": 0.8225068618481244,
+      "weighted_precision": 0.8439809997233366,
+      "weighted_recall": 0.8225068618481244,
+      "weighted_f1": 0.8134524732182797
+    },
+    {
+      "label": "all_unique_per_image",
+      "checkpoint_path": "/home/casko/phd-code/LFR_project/results/experiment_caption_strategy_2/open_clip_finetune_all_unique_per_image/ckp_best.pth",
+      "checkpoint_type": "finetune",
+      "num_samples": 1093,
+      "accuracy": 0.8417200365965233,
+      "weighted_precision": 0.8718299526880449,
+      "weighted_recall": 0.8417200365965233,
+      "weighted_f1": 0.8354749367648359
+    }
+  ]
+}

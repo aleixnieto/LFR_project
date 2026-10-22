@@ -1,0 +1,17 @@
+# Stage 2 batch-size ablation: smaller contrastive image batch.
+model_name: ViT-B-32
+pretrained_tag: laion2b_s34b_b79k
+checkpoint_path: ../../../weights/open_clip/ViT-B-32-laion2b_s34b_b79k.bin
+
+image_dir: ../../../RSICD_images
+json_path: ../../../dataset_rsicd.json
+dataset_split: val
+seed: 42
+supervised_train_fraction: 0.8
+
+batch_size: 16
+num_workers: 4
+epochs: 5
+learning_rate: 0.0001
+warmup_fraction: 0.1
+output_dir: ../../../results/finetune_ablations/stage2_bs16_lr_1e-4

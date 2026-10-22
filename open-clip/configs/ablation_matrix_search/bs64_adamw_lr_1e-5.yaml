@@ -1,0 +1,22 @@
+# Full-factorial ablation: batch size 64, adamw, learning rate 1e-5.
+# Caption handling and all non-matrix controls are fixed across runs.
+model_name: ViT-B-32
+pretrained_tag: laion2b_s34b_b79k
+checkpoint_path: ../../../weights/open_clip/ViT-B-32-laion2b_s34b_b79k.bin
+
+image_dir: ../../../RSICD_images
+json_path: ../../../dataset_rsicd.json
+dataset_split: val
+seed: 42
+supervised_train_fraction: 0.8
+caption_policy: all_unique
+text_to_image_weighting: per_caption
+
+batch_size: 64
+num_workers: 4
+epochs: 8
+learning_rate: 0.00001
+optimizer: adamw
+weight_decay: 0.1
+warmup_fraction: 0.1
+output_dir: ../../../results/finetune_ablation_matrix_search/bs64_adamw_lr_1e-5
