@@ -1,4 +1,4 @@
-"""Create headless training plots from a completed SemiCLIP run."""
+"""Create headless plots from a completed SemiCLIP or supervised-control run."""
 
 import argparse
 import json
@@ -12,7 +12,7 @@ import matplotlib.pyplot as plt  # noqa: E402
 
 def load_epoch_records(path: Path) -> list[dict[str, object]]:
     if not path.is_file():
-        raise FileNotFoundError(f"SemiCLIP metrics file does not exist: {path}")
+        raise FileNotFoundError(f"Metrics file does not exist: {path}")
     with path.open(encoding="utf-8") as file:
         document = json.load(file)
     records = document.get("epochs") if isinstance(document, dict) else None
@@ -140,19 +140,87 @@ def plot_logit_scales(
     )
 
 
+def plot_supervised_losses(
+    records: list[dict[str, object]], output_dir: Path
+) -> Path:
+    figure, axis = plt.subplots(figsize=(10, 6))
+    for section, metric, label, style in (
+        ("train", "loss", "Train objective", "-"),
+        ("validation", "selection_loss", "Validation objective", "--"),
+    ):
+        epochs, values = metric_series(records, section, metric)
+        if values:
+            axis.plot(epochs, values, style, label=label)
+    return _finish_plot(
+        axis,
+        "Supervised training and validation loss",
+        "Loss",
+        output_dir / "supervised_losses.png",
+    )
+
+
+def plot_supervised_learning_rate(
+    records: list[dict[str, object]], output_dir: Path
+) -> Path:
+    figure, axis = plt.subplots(figsize=(10, 6))
+    epochs, values = metric_series(records, "train", "learning_rate")
+    if values:
+        axis.plot(epochs, values, label="Learning rate")
+    return _finish_plot(
+        axis,
+        "Supervised learning rate",
+        "Learning rate",
+        output_dir / "learning_rate.png",
+    )
+
+
+def plot_supervised_logit_scale(
+    records: list[dict[str, object]], output_dir: Path
+) -> Path:
+    figure, axis = plt.subplots(figsize=(10, 6))
+    for section, label, style in (
+        ("train", "Train", "-"),
+        ("validation", "Validation", "--"),
+    ):
+        epochs, values = metric_series(records, section, "logit_scale")
+        if values:
+            axis.plot(epochs, values, style, label=label)
+    return _finish_plot(
+        axis,
+        "Supervised CLIP logit scale",
+        "Scale",
+        output_dir / "logit_scales.png",
+    )
+
+
 def create_plots(run_dir: str | Path, output_dir: str | Path) -> list[Path]:
     run_dir = Path(run_dir).resolve()
     output_dir = Path(output_dir).resolve()
     output_dir.mkdir(parents=True, exist_ok=True)
-    stage1 = load_epoch_records(run_dir / "stage1_metrics.json")
-    stage2 = load_epoch_records(run_dir / "stage2_metrics.json")
-    return [
-        plot_stage1_losses(stage1, output_dir),
-        plot_stage2_losses(stage2, output_dir),
-        plot_learning_rates(stage1, stage2, output_dir),
-        plot_selection_counts(stage2, output_dir),
-        plot_logit_scales(stage1, stage2, output_dir),
-    ]
+    stage1_path = run_dir / "stage1_metrics.json"
+    stage2_path = run_dir / "stage2_metrics.json"
+    supervised_path = run_dir / "metrics.json"
+    if stage1_path.is_file() and stage2_path.is_file():
+        stage1 = load_epoch_records(stage1_path)
+        stage2 = load_epoch_records(stage2_path)
+        return [
+            plot_stage1_losses(stage1, output_dir),
+            plot_stage2_losses(stage2, output_dir),
+            plot_learning_rates(stage1, stage2, output_dir),
+            plot_selection_counts(stage2, output_dir),
+            plot_logit_scales(stage1, stage2, output_dir),
+        ]
+    if supervised_path.is_file():
+        supervised = load_epoch_records(supervised_path)
+        return [
+            plot_supervised_losses(supervised, output_dir),
+            plot_supervised_learning_rate(supervised, output_dir),
+            plot_supervised_logit_scale(supervised, output_dir),
+        ]
+    raise FileNotFoundError(
+        f"No supported metrics found in {run_dir}; expected both "
+        "stage1_metrics.json and stage2_metrics.json, or metrics.json"
+    )
 
 
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:

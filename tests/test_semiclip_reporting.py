@@ -100,6 +100,51 @@ class SemiCLIPReportingTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, "No epoch"):
                 load_epoch_records(path)
 
+    def test_plotter_supports_supervised_control_metrics(self) -> None:
+        metrics = {
+            "epochs": [
+                {
+                    "epoch": 1,
+                    "train": {
+                        "loss": 1.2,
+                        "learning_rate": 5e-5,
+                        "logit_scale": 99.0,
+                    },
+                    "validation": {
+                        "selection_loss": 1.4,
+                        "logit_scale": 98.5,
+                    },
+                },
+                {
+                    "epoch": 2,
+                    "train": {
+                        "loss": 0.9,
+                        "learning_rate": 4e-5,
+                        "logit_scale": 98.0,
+                    },
+                    "validation": {
+                        "selection_loss": 1.3,
+                        "logit_scale": 97.5,
+                    },
+                },
+            ]
+        }
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            root = Path(temporary_directory)
+            run_dir = root / "run"
+            run_dir.mkdir()
+            (run_dir / "metrics.json").write_text(
+                json.dumps(metrics), encoding="utf-8"
+            )
+
+            paths = create_plots(run_dir, root / "plots")
+
+            self.assertEqual(
+                {path.name for path in paths},
+                {"supervised_losses.png", "learning_rate.png", "logit_scales.png"},
+            )
+            self.assertTrue(all(path.is_file() and path.stat().st_size > 0 for path in paths))
+
     def test_comparison_config_lists_all_benchmark_checkpoints(self) -> None:
         dataset = load_comparison_dataset(COMPARISON_CONFIG)
         models = load_models(COMPARISON_CONFIG)
