@@ -1,0 +1,18 @@
+# Matched final-checkpoint comparison for the seed-42 SemiCLIP caption-policy run.
+image_dir: ../../../RSICD_images
+json_path: ../../../dataset_rsicd.json
+dataset_split: test
+class_dir: ../../../txtclasses_rsicd
+
+models:
+  - label: semiclip_random_one_seed42
+    model_name: ViT-B-32
+    pretrained_tag: laion2b_s34b_b79k
+    checkpoint_type: finetune
+    checkpoint_path: ../../../results/open_clip_semiclip_paper_1gpu_seed42/stage2_final.pt
+
+  - label: semiclip_all_unique_seed42
+    model_name: ViT-B-32
+    pretrained_tag: laion2b_s34b_b79k
+    checkpoint_type: finetune
+    checkpoint_path: ../../../results/open_clip_semiclip_paper_1gpu_all_unique_seed42/stage2_final.pt
