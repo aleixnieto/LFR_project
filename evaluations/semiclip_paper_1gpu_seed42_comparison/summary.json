@@ -1,0 +1,34 @@
+{
+  "models": [
+    {
+      "label": "baseline",
+      "checkpoint_path": "/home/casko/phd-code/LFR_project/weights/open_clip/ViT-B-32-laion2b_s34b_b79k.bin",
+      "checkpoint_type": "openclip",
+      "num_samples": 1093,
+      "accuracy": 0.6267154620311071,
+      "weighted_precision": 0.6159655254269344,
+      "weighted_recall": 0.6267154620311071,
+      "weighted_f1": 0.5908988567114914
+    },
+    {
+      "label": "supervised_all_unique_per_caption",
+      "checkpoint_path": "/home/casko/phd-code/LFR_project/results/experiment_caption_strategy_2/open_clip_finetune_all_unique_per_caption/ckp_best.pth",
+      "checkpoint_type": "finetune",
+      "num_samples": 1093,
+      "accuracy": 0.8627630375114365,
+      "weighted_precision": 0.8835010978149095,
+      "weighted_recall": 0.8627630375114365,
+      "weighted_f1": 0.8496433215651146
+    },
+    {
+      "label": "semiclip_paper_1gpu_seed42",
+      "checkpoint_path": "/home/casko/phd-code/LFR_project/results/open_clip_semiclip_paper_1gpu_seed42/stage2_final.pt",
+      "checkpoint_type": "finetune",
+      "num_samples": 1093,
+      "accuracy": 0.8563586459286368,
+      "weighted_precision": 0.8657904511068256,
+      "weighted_recall": 0.8563586459286368,
+      "weighted_f1": 0.8530702617356635
+    }
+  ]
+}
