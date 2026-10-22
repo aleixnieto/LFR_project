@@ -327,6 +327,48 @@ python open-clip/semiclip/plot.py results/open_clip_semiclip \
 
 The plotting utility is headless and reads `stage1_metrics.json` and `stage2_metrics.json` from the run directory.
 
+### Implementation Details
+
+**Concept mining:** Concepts are mined only from the labeled-training partition. NLTK tokenizes and part-of-speech tags every caption, after which the workflow keeps nouns, removes the released implementation's generic/noisy noun list, and filters by `concept_min_frequency` and `concept_max_frequency_ratio`. Each image receives a multi-hot target over the retained vocabulary. A concept classifier is initialized from normalized OpenCLIP text embeddings of `"a photo includes {concept}."`; its weights and its own logit scale remain trainable.
+
+**Stage-1 loss:** Each labeled image is paired with one deterministic, seed- and epoch-dependent random caption. For a batch of \(B\) normalized image features \(v_i\) and caption features \(t_i\), with \(s=\exp(\texttt{model.logit\_scale})\), Stage 1 uses the ordinary symmetric one-to-one CLIP loss
+
+$$
+\mathcal{L}_{\mathrm{CLIP}}=
+\frac{1}{2B}\sum_{i=1}^{B}\left[
+-\log\frac{\exp(sv_i^\top t_i)}{\sum_j\exp(sv_i^\top t_j)}
+-\log\frac{\exp(st_i^\top v_i)}{\sum_j\exp(st_i^\top v_j)}
+\right].
+$$
+
+Let \(a_{ic}\) be the concept-classifier logit and let \(y_{ic}\) be the image's multi-hot concept target normalized to sum to one (an image with no retained concepts contributes zero to this term). The semantic concept loss is
+
+$$
+\mathcal{L}_{\mathrm{concept}}=-\frac{1}{B}\sum_{i=1}^{B}\sum_{c=1}^{C}
+y_{ic}\log\operatorname{softmax}(a_i)_c.
+$$
+
+The optimized Stage-1 objective is `clip_loss_weight` \(\mathcal{L}_{\mathrm{CLIP}}\) plus `concept_loss_weight` \(\mathcal{L}_{\mathrm{concept}}\). After the final Stage-1 epoch, the model computes and stores filename-keyed concept logits for every unlabeled image using the fixed weak OpenCLIP view. Stage 2 always uses this cache and `stage1_final.pt`; the validation-selected `stage1_best.pt` is retained only as a separate artifact.
+
+**Stage-2 pseudo-labels and surrogate captions:** Every update pairs one labeled half-batch with one unlabeled half-batch. For each unlabeled image, the top `concept_loss_top_k` classes in its cached Stage-1 logits form a uniform pseudo-target for the strong augmented view. Independently, the top `surrogate_top_k` cached concepts are placed into a surrogate caption. Three trainable context vectors, initialized from the text embedding of `"a photo includes"`, precede each concept; the resulting token embeddings are passed through the OpenCLIP text tower. The prompt, concept classifier, and all OpenCLIP parameters are trainable.
+
+**Stage-2 loss:** The labeled half-batch retains the Stage-1 CLIP term, while strong unlabeled views receive the pseudo-concept cross-entropy term. Unlabeled weak-view features and their surrogate-caption features are ranked by cosine similarity, and only the batch-local top \(\lfloor\texttt{selection\_ratio}\,U\rfloor\) pairs are used for consistency learning. If \(V\) and \(T\) concatenate the labeled features with those selected unlabeled image and surrogate features, the implementation adds an intramodal penalty aligning \(sVV^\top\) with \(sTT^\top\), and a crossmodal penalty making \(sVT^\top\) symmetric. The complete objective is
+
+$$
+\mathcal{L}_{\mathrm{stage2}}=
+\lambda_{\mathrm{clip}}\mathcal{L}_{\mathrm{CLIP}}+
+\lambda_{\mathrm{concept}}\mathcal{L}_{\mathrm{concept}}+
+\lambda_{\mathrm{intra}}\mathcal{L}_{\mathrm{intra}}+
+\lambda_{\mathrm{cross}}\mathcal{L}_{\mathrm{cross}},
+$$
+
+where the four weights are the corresponding `*_loss_weight` configuration values. The consistency terms divide out \(s^2\) and use the labeled half-batch size as the released implementation's scale factor.
+
+**Augmentation and batching:** Labeled training uses the normal OpenCLIP preprocessing. Each unlabeled Stage-2 sample supplies that weak view plus a strong view consisting of resize, reflected padded random crop, random horizontal flip, and the released FixMatch-style RandAugment. Incomplete labeled and Stage-2 unlabeled batches are dropped; the unlabeled iterator is restarted if the labeled loader is longer.
+
+**Optimization, validation, and reproducibility:** Both stages use AdamW with the configured betas and epsilon, excluding bias, normalization, scalar, and logit-scale parameters from weight decay. Each stage creates its own optimizer and cosine schedule with the configured warmup; Stage 2 never reuses Stage-1 optimizer state. Model and classifier logit scales are clamped after every update so their exponentials are at most approximately 100. Validation uses every unique caption and the symmetric multi-positive CLIP loss. Metrics include component losses, learning rate, scales, processed counts, selection statistics, and SHA-256 hashes of image order. Checkpoints include model/module, optimizer, scheduler, configuration, history, provenance, and RNG states; Python, NumPy, PyTorch, and available CUDA RNGs are seeded from `seed`.
+
+
 ## Experiments
 
 See separate readme files under each config folder.
