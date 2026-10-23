@@ -1,0 +1,22 @@
+# Select the seed-42 SemiCLIP caption policy on the held-out labeled-validation
+# partition. Run this with main_zeroshot_compare_config_subset.py; never use the
+# RSICD test split to choose between these models.
+image_dir: ../../../RSICD_images
+json_path: ../../../dataset_rsicd.json
+dataset_split: val
+class_dir: ../../../txtclasses_rsicd
+subset_filenames_json: ../../../results/open_clip_semiclip_paper_1gpu_seed42/concepts.json
+subset_filenames_key: labeled_validation_filenames
+
+models:
+  - label: semiclip_random_one_seed42
+    model_name: ViT-B-32
+    pretrained_tag: laion2b_s34b_b79k
+    checkpoint_type: finetune
+    checkpoint_path: ../../../results/open_clip_semiclip_paper_1gpu_seed42/stage2_final.pt
+
+  - label: semiclip_all_unique_seed42
+    model_name: ViT-B-32
+    pretrained_tag: laion2b_s34b_b79k
+    checkpoint_type: finetune
+    checkpoint_path: ../../../results/open_clip_semiclip_paper_1gpu_all_unique_seed42/stage2_final.pt

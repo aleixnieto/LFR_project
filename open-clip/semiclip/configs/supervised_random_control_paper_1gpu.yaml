@@ -1,0 +1,29 @@
+# Stage-1-matched supervised control for the paper-faithful SemiCLIP run.
+# It uses only the 875 labeled images and removes all concept/unlabeled losses.
+model_name: ViT-B-32
+pretrained_tag: laion2b_s34b_b79k
+checkpoint_path: ../../../weights/open_clip/ViT-B-32-laion2b_s34b_b79k.bin
+
+image_dir: ../../../RSICD_images
+json_path: ../../../dataset_rsicd.json
+dataset_split: val
+seed: 42
+supervised_train_fraction: 0.8
+caption_policy: random_one
+text_to_image_weighting: per_caption
+
+# Match SemiCLIP Stage 1 optimization and labeled-image exposure.
+batch_size: 32
+validation_batch_size: 64
+num_workers: 4
+epochs: 25
+learning_rate: 0.00005
+optimizer: adamw
+weight_decay: 0.0005
+scheduler: cosine
+warmup_steps: 10
+warmup_fraction: 0.0
+drop_last: true
+shuffle_seed_offset: 1
+
+output_dir: ../../../results/open_clip_supervised_random_control_paper_1gpu_seed42

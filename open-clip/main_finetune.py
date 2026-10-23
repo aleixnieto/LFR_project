@@ -50,6 +50,11 @@ class FineTuneConfig:
     output_dir: Path
     optimizer: str = "adafactor"
     weight_decay: float = 0.0
+    scheduler: str = "linear"
+    warmup_steps: int | None = None
+    drop_last: bool = False
+    validation_batch_size: int | None = None
+    shuffle_seed_offset: int = 0
 
 
 def resolve_config_path(config_path: Path, configured_path: str) -> Path:
@@ -94,7 +99,18 @@ def load_config(config_path: Path) -> FineTuneConfig:
         learning_rate = float(values["learning_rate"])
         optimizer = str(values.get("optimizer", "adafactor")).lower()
         weight_decay = float(values.get("weight_decay", 0.0))
-        warmup_fraction = float(values["warmup_fraction"])
+        warmup_fraction = float(values.get("warmup_fraction", 0.0))
+        warmup_steps_value = values.get("warmup_steps")
+        warmup_steps = (
+            None if warmup_steps_value is None else int(warmup_steps_value)
+        )
+        validation_batch_size_value = values.get("validation_batch_size")
+        validation_batch_size = (
+            None
+            if validation_batch_size_value is None
+            else int(validation_batch_size_value)
+        )
+        shuffle_seed_offset = int(values.get("shuffle_seed_offset", 0))
     except (KeyError, TypeError, ValueError) as error:
         raise ValueError("Fine-tuning config has invalid numeric settings") from error
     caption_policy = values["caption_policy"]
@@ -120,6 +136,16 @@ def load_config(config_path: Path) -> FineTuneConfig:
         raise ValueError("weight_decay cannot be negative")
     if not 0 <= warmup_fraction < 1:
         raise ValueError("warmup_fraction must be at least zero and less than one")
+    if warmup_steps is not None and warmup_steps < 0:
+        raise ValueError("warmup_steps cannot be negative")
+    if validation_batch_size is not None and validation_batch_size <= 0:
+        raise ValueError("validation_batch_size must be positive")
+    scheduler = str(values.get("scheduler", "linear")).lower()
+    if scheduler not in {"linear", "cosine"}:
+        raise ValueError("scheduler must be either 'linear' or 'cosine'")
+    drop_last = values.get("drop_last", False)
+    if not isinstance(drop_last, bool):
+        raise ValueError("drop_last must be a boolean")
 
     return FineTuneConfig(
         model_name=values["model_name"],
@@ -139,6 +165,11 @@ def load_config(config_path: Path) -> FineTuneConfig:
         optimizer=optimizer,
         weight_decay=weight_decay,
         warmup_fraction=warmup_fraction,
+        scheduler=scheduler,
+        warmup_steps=warmup_steps,
+        drop_last=drop_last,
+        validation_batch_size=validation_batch_size,
+        shuffle_seed_offset=shuffle_seed_offset,
         output_dir=resolve_config_path(config_path, values["output_dir"]),
     )
 
@@ -408,10 +439,15 @@ def create_optimizer_and_scheduler(
             eps=1e-6,
             weight_decay=config.weight_decay,
         )
+    warmup_steps = (
+        config.warmup_steps
+        if config.warmup_steps is not None
+        else int(config.warmup_fraction * total_steps)
+    )
     scheduler = get_scheduler(
-        name="linear",
+        name=config.scheduler,
         optimizer=optimizer,
-        num_warmup_steps=int(config.warmup_fraction * total_steps),
+        num_warmup_steps=warmup_steps,
         num_training_steps=total_steps,
     )
     return optimizer, scheduler
@@ -565,18 +601,24 @@ def run_finetune(args: argparse.Namespace, config: FineTuneConfig) -> None:
         "num_workers": config.num_workers,
         "pin_memory": device.type == "cuda",
         "collate_fn": collate_supervised_captions,
-        "drop_last": False,
         "persistent_workers": False,
     }
-    shuffle_generator = torch.Generator().manual_seed(config.seed)
+    shuffle_generator = torch.Generator().manual_seed(
+        config.seed + config.shuffle_seed_offset
+    )
     train_loader = DataLoader(
         train_dataset,
         shuffle=True,
         generator=shuffle_generator,
+        drop_last=config.drop_last,
         **loader_options,
     )
+    validation_options = dict(loader_options)
+    validation_options["batch_size"] = (
+        config.validation_batch_size or config.batch_size
+    )
     validation_loader = DataLoader(
-        validation_dataset, shuffle=False, **loader_options
+        validation_dataset, shuffle=False, drop_last=False, **validation_options
     )
 
     train_batches = min(len(train_loader), args.max_train_batches or len(train_loader))
@@ -597,7 +639,9 @@ def run_finetune(args: argparse.Namespace, config: FineTuneConfig) -> None:
         "text_to_image_weighting": config.text_to_image_weighting,
         "validation_caption_policy": "all_unique",
         "validation_text_to_image_weighting": "per_caption",
-        "drop_last": False,
+        "drop_last": config.drop_last,
+        "validation_batch_size": config.validation_batch_size or config.batch_size,
+        "shuffle_seed_offset": config.shuffle_seed_offset,
         "persistent_workers": False,
         "train_images": len(train_dataset),
         "validation_images": len(validation_dataset),
@@ -606,6 +650,12 @@ def run_finetune(args: argparse.Namespace, config: FineTuneConfig) -> None:
         "planned_optimizer_steps": total_steps,
         "optimizer": config.optimizer,
         "weight_decay": config.weight_decay,
+        "scheduler": config.scheduler,
+        "warmup_steps": (
+            config.warmup_steps
+            if config.warmup_steps is not None
+            else int(config.warmup_fraction * total_steps)
+        ),
         "max_train_batches": args.max_train_batches,
         "max_validation_batches": args.max_validation_batches,
         "epochs": [],
@@ -615,6 +665,10 @@ def run_finetune(args: argparse.Namespace, config: FineTuneConfig) -> None:
     print(f"Checkpoint: {config.checkpoint_path}")
     print(f"Device: {device}")
     print(f"Optimizer: {config.optimizer}; weight decay: {config.weight_decay:g}")
+    print(
+        f"Scheduler: {config.scheduler}; warmup steps: "
+        f"{config.warmup_steps if config.warmup_steps is not None else int(config.warmup_fraction * total_steps)}"
+    )
     print(f"Training caption policy: {config.caption_policy}")
     print(f"Text-to-image weighting: {config.text_to_image_weighting}")
     print("Validation objective: all_unique / per_caption")

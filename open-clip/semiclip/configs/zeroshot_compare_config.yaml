@@ -1,0 +1,55 @@
+# Compare the original, supervised, and SemiCLIP models on untouched RSICD test images.
+# Paths are relative to this configuration file.
+image_dir: ../../../RSICD_images
+json_path: ../../../dataset_rsicd.json
+dataset_split: test
+class_dir: ../../../txtclasses_rsicd
+
+models:
+  - label: baseline
+    model_name: ViT-B-32
+    pretrained_tag: laion2b_s34b_b79k
+    checkpoint_type: openclip
+    checkpoint_path: ../../../weights/open_clip/ViT-B-32-laion2b_s34b_b79k.bin
+
+  - label: supervised_all_unique_per_caption
+    model_name: ViT-B-32
+    pretrained_tag: laion2b_s34b_b79k
+    checkpoint_type: finetune
+    checkpoint_path: ../../../results/experiment_caption_strategy_2/open_clip_finetune_all_unique_per_caption/ckp_best.pth
+
+  - label: supervised_random_existing_best
+    model_name: ViT-B-32
+    pretrained_tag: laion2b_s34b_b79k
+    checkpoint_type: finetune
+    checkpoint_path: ../../../results/experiment_caption_strategy_2/open_clip_finetune_random_one_per_caption/ckp_best.pth
+
+  - label: supervised_random_control_best
+    model_name: ViT-B-32
+    pretrained_tag: laion2b_s34b_b79k
+    checkpoint_type: finetune
+    checkpoint_path: ../../../results/open_clip_supervised_random_control_paper_1gpu_seed42/ckp_best.pth
+
+  - label: supervised_random_control_final
+    model_name: ViT-B-32
+    pretrained_tag: laion2b_s34b_b79k
+    checkpoint_type: finetune
+    checkpoint_path: ../../../results/open_clip_supervised_random_control_paper_1gpu_seed42/ckp_last.pth
+
+  - label: semiclip_stage1_best
+    model_name: ViT-B-32
+    pretrained_tag: laion2b_s34b_b79k
+    checkpoint_type: finetune
+    checkpoint_path: ../../../results/open_clip_semiclip_paper_1gpu_seed42/stage1_best.pt
+
+  - label: semiclip_stage1_final
+    model_name: ViT-B-32
+    pretrained_tag: laion2b_s34b_b79k
+    checkpoint_type: finetune
+    checkpoint_path: ../../../results/open_clip_semiclip_paper_1gpu_seed42/stage1_final.pt
+
+  - label: semiclip_paper_1gpu_seed42
+    model_name: ViT-B-32
+    pretrained_tag: laion2b_s34b_b79k
+    checkpoint_type: finetune
+    checkpoint_path: ../../../results/open_clip_semiclip_paper_1gpu_seed42/stage2_final.pt

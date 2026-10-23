@@ -1,0 +1,36 @@
+# Paper-faithful single-GPU SemiCLIP run with every unique labeled caption.
+model_name: ViT-B-32
+pretrained_tag: laion2b_s34b_b79k
+checkpoint_path: ../../../weights/open_clip/ViT-B-32-laion2b_s34b_b79k.bin
+
+image_dir: ../../../RSICD_images
+json_path: ../../../dataset_rsicd.json
+labeled_split: val
+unlabeled_split: train
+supervised_train_fraction: 0.8
+seed: 42
+caption_policy: all_unique
+
+# Single-GPU setting: 32 labeled and 32 unlabeled samples per Stage-2 update.
+total_batch_size: 64
+num_workers: 4
+learning_rate: 0.00005
+weight_decay: 0.0005
+beta1: 0.9
+beta2: 0.98
+epsilon: 0.000001
+warmup_steps: 10
+stage1_epochs: 25
+stage2_epochs: 15
+
+concept_min_frequency: 5
+concept_max_frequency_ratio: 0.3
+concept_loss_top_k: 3
+surrogate_top_k: 4
+selection_ratio: 0.3
+clip_loss_weight: 1.0
+concept_loss_weight: 1.0
+intramodal_loss_weight: 1.0
+crossmodal_loss_weight: 1.0
+
+output_dir: ../../../results/open_clip_semiclip_paper_1gpu_all_unique_seed42
