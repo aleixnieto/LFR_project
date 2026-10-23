@@ -1,4 +1,5 @@
-# Compare the original, supervised, and SemiCLIP models on untouched RSICD test images.
+# Final reporting only: compare frozen, validation-selected experiment choices
+# on untouched RSICD test images. Do not use this config for parameter selection.
 # Paths are relative to this configuration file.
 image_dir: ../../../RSICD_images
 json_path: ../../../dataset_rsicd.json

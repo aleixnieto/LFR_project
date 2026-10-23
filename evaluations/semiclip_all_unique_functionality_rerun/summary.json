@@ -1,0 +1,54 @@
+{
+  "models": [
+    {
+      "label": "baseline",
+      "checkpoint_path": "/home/casko/phd-code/LFR_project/weights/open_clip/ViT-B-32-laion2b_s34b_b79k.bin",
+      "checkpoint_type": "openclip",
+      "num_samples": 1093,
+      "accuracy": 0.6267154620311071,
+      "weighted_precision": 0.6159655254269344,
+      "weighted_recall": 0.6267154620311071,
+      "weighted_f1": 0.5908988567114914
+    },
+    {
+      "label": "supervised_all_unique_control_best",
+      "checkpoint_path": "/home/casko/phd-code/LFR_project/results/open_clip_supervised_all_unique_control_paper_1gpu_seed42_functionality_rerun/ckp_best.pth",
+      "checkpoint_type": "finetune",
+      "num_samples": 1093,
+      "accuracy": 0.7529734675205856,
+      "weighted_precision": 0.7693928811143721,
+      "weighted_recall": 0.7529734675205856,
+      "weighted_f1": 0.7401091138663055
+    },
+    {
+      "label": "supervised_all_unique_control_final",
+      "checkpoint_path": "/home/casko/phd-code/LFR_project/results/open_clip_supervised_all_unique_control_paper_1gpu_seed42_functionality_rerun/ckp_last.pth",
+      "checkpoint_type": "finetune",
+      "num_samples": 1093,
+      "accuracy": 0.817932296431839,
+      "weighted_precision": 0.8401993862605872,
+      "weighted_recall": 0.817932296431839,
+      "weighted_f1": 0.8036897439725161
+    },
+    {
+      "label": "semiclip_all_unique_stage1_final",
+      "checkpoint_path": "/home/casko/phd-code/LFR_project/results/open_clip_semiclip_paper_1gpu_all_unique_seed42_functionality_rerun/stage1_final.pt",
+      "checkpoint_type": "finetune",
+      "num_samples": 1093,
+      "accuracy": 0.8371454711802379,
+      "weighted_precision": 0.8594627779421323,
+      "weighted_recall": 0.8371454711802379,
+      "weighted_f1": 0.8230614017213068
+    },
+    {
+      "label": "semiclip_all_unique_stage2_final",
+      "checkpoint_path": "/home/casko/phd-code/LFR_project/results/open_clip_semiclip_paper_1gpu_all_unique_seed42_functionality_rerun/stage2_final.pt",
+      "checkpoint_type": "finetune",
+      "num_samples": 1093,
+      "accuracy": 0.8764867337602927,
+      "weighted_precision": 0.8857326427630677,
+      "weighted_recall": 0.8764867337602927,
+      "weighted_f1": 0.8719514512199077
+    }
+  ]
+}

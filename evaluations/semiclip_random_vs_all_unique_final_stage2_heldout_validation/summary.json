@@ -1,0 +1,24 @@
+{
+  "models": [
+    {
+      "label": "semiclip_random_caption_stage2_final",
+      "checkpoint_path": "/home/casko/phd-code/LFR_project/results/open_clip_semiclip_paper_1gpu_seed42/stage2_final.pt",
+      "checkpoint_type": "finetune",
+      "num_samples": 219,
+      "accuracy": 0.9041095890410958,
+      "weighted_precision": 0.9091469159962311,
+      "weighted_recall": 0.9041095890410958,
+      "weighted_f1": 0.9017213876058426
+    },
+    {
+      "label": "semiclip_all_unique_stage2_final",
+      "checkpoint_path": "/home/casko/phd-code/LFR_project/results/open_clip_semiclip_paper_1gpu_all_unique_seed42_functionality_rerun/stage2_final.pt",
+      "checkpoint_type": "finetune",
+      "num_samples": 219,
+      "accuracy": 0.9041095890410958,
+      "weighted_precision": 0.904241585405969,
+      "weighted_recall": 0.9041095890410958,
+      "weighted_f1": 0.8977312298243875
+    }
+  ]
+}

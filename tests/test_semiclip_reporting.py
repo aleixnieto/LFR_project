@@ -12,11 +12,18 @@ OPEN_CLIP_DIR = PROJECT_ROOT / "open-clip"
 sys.path.insert(0, str(OPEN_CLIP_DIR))
 
 from main_zeroshot_compare import load_comparison_dataset, load_models  # noqa: E402
+from main_zeroshot_compare_config_subset import load_subset_source  # noqa: E402
 from semiclip.plot import create_plots, load_epoch_records  # noqa: E402
 
 
 COMPARISON_CONFIG = (
     OPEN_CLIP_DIR / "semiclip" / "configs" / "zeroshot_compare_config.yaml"
+)
+CAPTION_POLICY_SELECTION_CONFIG = (
+    OPEN_CLIP_DIR
+    / "semiclip"
+    / "configs"
+    / "zeroshot_compare_all_unique_seed42.yaml"
 )
 
 
@@ -168,6 +175,29 @@ class SemiCLIPReportingTests(unittest.TestCase):
             ["openclip"] + ["finetune"] * 7,
         )
         self.assertEqual(models[-1].checkpoint_path.name, "stage2_final.pt")
+
+    def test_caption_policy_selection_uses_only_held_out_validation(self) -> None:
+        dataset = load_comparison_dataset(CAPTION_POLICY_SELECTION_CONFIG)
+        models = load_models(CAPTION_POLICY_SELECTION_CONFIG)
+        subset_path, subset_key = load_subset_source(
+            CAPTION_POLICY_SELECTION_CONFIG
+        )
+
+        self.assertEqual(dataset.dataset_split, "val")
+        self.assertEqual(subset_key, "labeled_validation_filenames")
+        self.assertEqual(
+            subset_path,
+            (
+                PROJECT_ROOT
+                / "results"
+                / "open_clip_semiclip_paper_1gpu_seed42"
+                / "concepts.json"
+            ).resolve(),
+        )
+        self.assertEqual(
+            [model.label for model in models],
+            ["semiclip_random_one_seed42", "semiclip_all_unique_seed42"],
+        )
 
 
 if __name__ == "__main__":
