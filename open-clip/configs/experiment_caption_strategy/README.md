@@ -1,4 +1,4 @@
-### Running the caption-strategy experiment
+# Caption-strategy experiment
 
 The experiment uses three full-run configurations that differ in caption selection and text-to-image weighting.
 
@@ -19,7 +19,7 @@ The **all-unique/per-caption baseline** encodes every unique caption for an imag
 Run the three configurations from the repository root:
 
 ```bash
-for config in open-clip/configs/experiment_caption_strategy_2/finetune_full*_config.yaml; do
+for config in open-clip/configs/experiment_caption_strategy/finetune_full*_config.yaml; do
   python open-clip/main_finetune.py --config "$config" --device cuda || break
 done
 ```
@@ -52,12 +52,47 @@ The command writes loss, positive text-to-image and image-to-text logits,
 logit-scale, and learning-rate plots. Each plot compares all three models over
 their training epochs.
 
-### Zero-shot evaluation
+![Caption-strategy training and validation loss](../../../results/experiment_caption_strategy_2/training_metric_plots/loss.png)
 
-After all three training runs finish, compare their best validation-selected
-checkpoints with the original non-fine-tuned OpenCLIP policy on the held-out
-RSICD test split. The model list and dataset paths are defined in
-`zeroshot_compare_config.yaml`.
+### Validation-set model selection
+
+Parameter selection uses the exact 219-image held-out partition derived from
+the RSICD `val` split. Its ordered filename SHA-256 is
+`85b4c45a9272534a53be5e4790500e07d046219dca7b5be58c5ae6da10ac6b26`.
+The test split is not used in this step.
+
+Run the subset-aware comparison from the repository root:
+
+```bash
+python open-clip/main_zeroshot_compare_config_subset.py \
+  --models-config open-clip/configs/experiment_caption_strategy/zeroshot_compare_validation_config.yaml \
+  --device cuda \
+  --output-dir evaluations/open_clip_caption_strategy_heldout_validation
+```
+
+The validation results are:
+
+| Strategy | Accuracy | Macro F1 | Weighted F1 |
+| --- | ---: | ---: | ---: |
+| Pretrained baseline | 65.75% | 61.28% | 63.50% |
+| All unique / per-caption | **92.24%** | **92.14%** | **91.48%** |
+| Random one / per-caption | 86.76% | 85.68% | 86.17% |
+| All unique / per-image | 91.78% | 91.91% | 91.37% |
+
+All unique captions with per-caption weighting is the validation-selected
+strategy because it leads both accuracy and macro F1. Its margin over per-image
+weighting is small: one correctly classified image and approximately 0.23
+percentage points of macro F1.
+
+![Caption-strategy held-out validation results](validation_model_comparison.png)
+
+### Test-set reporting
+
+After the strategy has been frozen using validation, compare the checkpoints
+with the original non-fine-tuned OpenCLIP model on the 1,093-image RSICD test
+split. The model list and dataset paths are defined in
+`zeroshot_compare_config.yaml`. These test results are reporting-only and must
+not change the selected strategy.
 
 Run the comparison from the repository root:
 
@@ -68,9 +103,25 @@ python open-clip/main_zeroshot_compare.py \
   --output-dir evaluations/open_clip_caption_strategy_comparison_2
 ```
 
+The test results are:
+
+| Strategy | Accuracy | Macro F1 | Weighted F1 |
+| --- | ---: | ---: | ---: |
+| Pretrained baseline | 62.67% | 58.20% | 59.09% |
+| All unique / per-caption | **86.28%** | **86.51%** | **84.96%** |
+| Random one / per-caption | 82.25% | 82.55% | 81.35% |
+| All unique / per-image | 84.17% | 84.36% | 83.55% |
+
+The test ordering agrees with the validation selection, but it is not selection
+evidence. These test scores had already been inspected before the validation
+protocol was formalized, so that history should be disclosed when reporting
+the experiment.
+
+![Caption-strategy test results](../../../evaluations/open_clip_caption_strategy_comparison_2/model_comparison.png)
+
 The evaluation writes an aggregate `summary.json`, comparison plots, and
 per-model metrics, predictions, and confusion matrices beneath
-`evaluations/open_clip_caption_strategy_comparison/`. The
+`evaluations/open_clip_caption_strategy_comparison_2/`. The
 `non_finetuned_baseline` entry uses the original local OpenCLIP checkpoint;
 the other entries use each training run's `ckp_best.pth`.
 
