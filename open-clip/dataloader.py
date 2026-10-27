@@ -223,6 +223,7 @@ class RSICDSupervisedDataset(Dataset):
             )
 
         self.filenames: list[str] = []
+        self.captions: list[list[str]] = []
         self.caption_tokens: list[torch.Tensor] = []
         for record in self.records:
             filename = _validated_record_filename(self.image_dir, record, "RSICD")
@@ -239,6 +240,7 @@ class RSICDSupervisedDataset(Dataset):
 
             tokens = _validated_text_tokens(self.tokenizer, captions)
             self.filenames.append(filename)
+            self.captions.append(captions)
             self.caption_tokens.append(tokens)
 
     def __len__(self) -> int:

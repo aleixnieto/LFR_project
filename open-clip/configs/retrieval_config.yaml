@@ -1,0 +1,11 @@
+# Local OpenCLIP initialization. Paths resolve relative to this configuration file.
+model_name: ViT-B-32
+pretrained_tag: laion2b_s34b_b79k
+checkpoint_path: ../../weights/open_clip/ViT-B-32-laion2b_s34b_b79k.bin
+
+# Retrieval will compare images with dataset captions, not scene-class prompts.
+image_dir: ../../RSICD_images
+json_path: ../../dataset_rsicd.json
+dataset_split: test
+# Included for compatibility with the shared dataset configuration loader.
+class_dir: ../../txtclasses_rsicd

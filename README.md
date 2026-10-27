@@ -77,6 +77,22 @@ Results: results/open_clip_zeroshot
 
 Use `python open-clip/main_zeroshot.py --list-pretrained` to list model/tag pairs supported by the installed OpenCLIP version. Listed pairs still need matching local weights and preprocessing suport.
 
+## Image-to-text retrieval (in progress)
+
+The entry point is `open-clip/main_retrieval.py`, configured by
+`open-clip/configs/retrieval_config.yaml` with `dataset_split: test`.
+Paths in the YAML resolve relative to the configuration file.
+
+Run `python open-clip/main_retrieval.py` to encode images and captions using the
+local pretrained OpenCLIP checkpoint. Duplicate caption
+strings are removed within each image, but captions shared by different images
+remain separate candidates.
+Each image ranks captions by cosine similarity. A match is
+correct when the retrieved text is in the query image's ground-truth caption list.
+The script prints Accuracy@1, @3, and @5: the fraction of images with at least one
+matching caption among the top K candidates (using all candidates if fewer than K
+are available). 
+
 ### Comparing models (zero-shot)
 
 `main_zeroshot_compare.py` evaluates and compares the models listed in `open-clip/configs/zeroshot_compare_config.yaml` on the configured test dataset.
