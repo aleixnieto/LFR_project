@@ -1,528 +1,628 @@
 {
-  "best_validation_loss": 1.9722606539726257,
+  "best_validation_loss": 1.9471396505832672,
   "epochs": [
     {
       "epoch": 0,
       "train": {
-        "clip_loss": 1.8992782301372952,
-        "concept_loss": 4.006272616209807,
-        "total_loss": 5.905550850762261,
+        "clip_loss": 1.8984764240406178,
+        "concept_loss": 4.007038822880498,
+        "total_loss": 5.905515264581751,
         "epoch": 0,
         "batches": 27,
         "images": 864,
+        "captions": 864,
+        "captions_per_image": 1.0,
         "image_order_sha256": "9f7c98f16fcaa833d74ad16076d0d39239e6c104a1c84a52ab141839a69fc46b",
         "learning_rate": 4.991941933119626e-05,
-        "logit_scale": 99.9759750366211,
-        "concept_logit_scale": 99.93941497802734
+        "logit_scale": 99.97607421875,
+        "concept_logit_scale": 99.93917846679688
       },
       "validation": {
-        "clip_loss": 2.3178363740444183,
+        "clip_loss": 2.3160140216350555,
         "batches": 4,
         "images": 219,
+        "captions": 558,
+        "captions_per_image": 2.547945205479452,
         "image_order_sha256": "746accc2cf8c0610d3ad799d85bc25f74403bdbba505810c190e8e7483682b4e"
       }
     },
     {
       "epoch": 1,
       "train": {
-        "clip_loss": 1.2106933063930936,
-        "concept_loss": 2.890565042142515,
-        "total_loss": 4.1012583220446555,
+        "clip_loss": 1.201799745912905,
+        "concept_loss": 2.885393831464979,
+        "total_loss": 4.087193577377884,
         "epoch": 1,
         "batches": 27,
         "images": 864,
+        "captions": 864,
+        "captions_per_image": 1.0,
         "image_order_sha256": "5940d4e25ff8db9a57382366cbfc35db0b7e100cb39a2399f58fffd019d4edc6",
         "learning_rate": 4.946184483087295e-05,
-        "logit_scale": 99.96009826660156,
-        "concept_logit_scale": 99.91606903076172
+        "logit_scale": 99.96047973632812,
+        "concept_logit_scale": 99.916015625
       },
       "validation": {
-        "clip_loss": 2.0145460665225983,
+        "clip_loss": 2.026478797197342,
         "batches": 4,
         "images": 219,
+        "captions": 558,
+        "captions_per_image": 2.547945205479452,
         "image_order_sha256": "746accc2cf8c0610d3ad799d85bc25f74403bdbba505810c190e8e7483682b4e"
       }
     },
     {
       "epoch": 2,
       "train": {
-        "clip_loss": 0.9332269099023607,
-        "concept_loss": 2.596428464960169,
-        "total_loss": 3.529655350579156,
+        "clip_loss": 0.929053940154888,
+        "concept_loss": 2.605702665117052,
+        "total_loss": 3.534756572158248,
         "epoch": 2,
         "batches": 27,
         "images": 864,
+        "captions": 864,
+        "captions_per_image": 1.0,
         "image_order_sha256": "cd28969bdbf864d39942e7a78260f03e92e08c293fb7f09056fd222e06c27756",
         "learning_rate": 4.860681869898621e-05,
-        "logit_scale": 99.94884490966797,
-        "concept_logit_scale": 99.90068054199219
+        "logit_scale": 99.9509048461914,
+        "concept_logit_scale": 99.89910888671875
       },
       "validation": {
-        "clip_loss": 1.9722606539726257,
+        "clip_loss": 1.975452035665512,
         "batches": 4,
         "images": 219,
+        "captions": 558,
+        "captions_per_image": 2.547945205479452,
         "image_order_sha256": "746accc2cf8c0610d3ad799d85bc25f74403bdbba505810c190e8e7483682b4e"
       }
     },
     {
       "epoch": 3,
       "train": {
-        "clip_loss": 0.7875840266545614,
-        "concept_loss": 2.4383942462779857,
-        "total_loss": 3.2259782861780235,
+        "clip_loss": 0.7962150154290376,
+        "concept_loss": 2.4408415070286504,
+        "total_loss": 3.2370565202501087,
         "epoch": 3,
         "batches": 27,
         "images": 864,
+        "captions": 864,
+        "captions_per_image": 1.0,
         "image_order_sha256": "2f24378fe31994cdb8611f5409999ec67f3235f34e2a26aa9d2a89d44010f8af",
         "learning_rate": 4.736823324551909e-05,
-        "logit_scale": 99.93326568603516,
-        "concept_logit_scale": 99.88272857666016
+        "logit_scale": 99.93417358398438,
+        "concept_logit_scale": 99.8809585571289
       },
       "validation": {
-        "clip_loss": 2.045424699783325,
+        "clip_loss": 2.00765460729599,
         "batches": 4,
         "images": 219,
+        "captions": 558,
+        "captions_per_image": 2.547945205479452,
         "image_order_sha256": "746accc2cf8c0610d3ad799d85bc25f74403bdbba505810c190e8e7483682b4e"
       }
     },
     {
       "epoch": 4,
       "train": {
-        "clip_loss": 0.7763393388854133,
-        "concept_loss": 2.308162804003115,
-        "total_loss": 3.0845021495112666,
+        "clip_loss": 0.7934427901550576,
+        "concept_loss": 2.323223846930045,
+        "total_loss": 3.116666661368476,
         "epoch": 4,
         "batches": 27,
         "images": 864,
+        "captions": 864,
+        "captions_per_image": 1.0,
         "image_order_sha256": "ef23df6d41eb259048a619f73dd430e3f55355dde204a170c7543ebd2583b913",
         "learning_rate": 4.576621278295558e-05,
-        "logit_scale": 99.91191864013672,
-        "concept_logit_scale": 99.87224578857422
+        "logit_scale": 99.90906524658203,
+        "concept_logit_scale": 99.8687744140625
       },
       "validation": {
-        "clip_loss": 1.996299833059311,
+        "clip_loss": 1.9471396505832672,
         "batches": 4,
         "images": 219,
+        "captions": 558,
+        "captions_per_image": 2.547945205479452,
         "image_order_sha256": "746accc2cf8c0610d3ad799d85bc25f74403bdbba505810c190e8e7483682b4e"
       }
     },
     {
       "epoch": 5,
       "train": {
-        "clip_loss": 0.6816272051246078,
-        "concept_loss": 2.1657225070176302,
-        "total_loss": 2.8473497143498174,
+        "clip_loss": 0.6397391789489322,
+        "concept_loss": 2.16078249613444,
+        "total_loss": 2.800521665149265,
         "epoch": 5,
         "batches": 27,
         "images": 864,
+        "captions": 864,
+        "captions_per_image": 1.0,
         "image_order_sha256": "534ba0aa269793ec55cf288b4839ffabf208e7a003bc194b73716edf4b0bdfc6",
         "learning_rate": 4.382678665009028e-05,
-        "logit_scale": 99.8831558227539,
-        "concept_logit_scale": 99.8685302734375
+        "logit_scale": 99.88715362548828,
+        "concept_logit_scale": 99.86466979980469
       },
       "validation": {
-        "clip_loss": 2.0336777567863464,
+        "clip_loss": 2.0827922224998474,
         "batches": 4,
         "images": 219,
+        "captions": 558,
+        "captions_per_image": 2.547945205479452,
         "image_order_sha256": "746accc2cf8c0610d3ad799d85bc25f74403bdbba505810c190e8e7483682b4e"
       }
     },
     {
       "epoch": 6,
       "train": {
-        "clip_loss": 0.6760452522171868,
-        "concept_loss": 2.1238769734347307,
-        "total_loss": 2.799922227859497,
+        "clip_loss": 0.676385185232869,
+        "concept_loss": 2.113844703744959,
+        "total_loss": 2.790229885666459,
         "epoch": 6,
         "batches": 27,
         "images": 864,
+        "captions": 864,
+        "captions_per_image": 1.0,
         "image_order_sha256": "9d5c42e2cc57bfb36e9f7f2c4f267632433b2887ac6a0b4ccf349995bffe1ecf",
         "learning_rate": 4.158146629203836e-05,
-        "logit_scale": 99.84696197509766,
-        "concept_logit_scale": 99.8619613647461
+        "logit_scale": 99.84976959228516,
+        "concept_logit_scale": 99.8549575805664
       },
       "validation": {
-        "clip_loss": 2.064646393060684,
+        "clip_loss": 1.9826671779155731,
         "batches": 4,
         "images": 219,
+        "captions": 558,
+        "captions_per_image": 2.547945205479452,
         "image_order_sha256": "746accc2cf8c0610d3ad799d85bc25f74403bdbba505810c190e8e7483682b4e"
       }
     },
     {
       "epoch": 7,
       "train": {
-        "clip_loss": 0.5309445140538392,
-        "concept_loss": 1.9765288785651878,
-        "total_loss": 2.5074734025531344,
+        "clip_loss": 0.5159086827878598,
+        "concept_loss": 1.9643958100566157,
+        "total_loss": 2.48030451492027,
         "epoch": 7,
         "batches": 27,
         "images": 864,
+        "captions": 864,
+        "captions_per_image": 1.0,
         "image_order_sha256": "b44ea6de32131d7e81166b730b285a90f5becc8bf33f7852506ad7a7dba6ac92",
         "learning_rate": 3.906673326797334e-05,
-        "logit_scale": 99.8360595703125,
-        "concept_logit_scale": 99.85015106201172
+        "logit_scale": 99.83367919921875,
+        "concept_logit_scale": 99.8521499633789
       },
       "validation": {
-        "clip_loss": 2.133168637752533,
+        "clip_loss": 2.1585603058338165,
         "batches": 4,
         "images": 219,
+        "captions": 558,
+        "captions_per_image": 2.547945205479452,
         "image_order_sha256": "746accc2cf8c0610d3ad799d85bc25f74403bdbba505810c190e8e7483682b4e"
       }
     },
     {
       "epoch": 8,
       "train": {
-        "clip_loss": 0.518303989260285,
-        "concept_loss": 1.888821835871096,
-        "total_loss": 2.407125817404853,
+        "clip_loss": 0.5716785391171774,
+        "concept_loss": 1.9051822953754,
+        "total_loss": 2.476860832284998,
         "epoch": 8,
         "batches": 27,
         "images": 864,
+        "captions": 864,
+        "captions_per_image": 1.0,
         "image_order_sha256": "e385dd764ade72a990ee4e5934546a67e4da7e700463708b724186f600da230d",
         "learning_rate": 3.632344650535024e-05,
-        "logit_scale": 99.8191146850586,
-        "concept_logit_scale": 99.84396362304688
+        "logit_scale": 99.79988098144531,
+        "concept_logit_scale": 99.84686279296875
       },
       "validation": {
-        "clip_loss": 2.0599485635757446,
+        "clip_loss": 1.9750610291957855,
         "batches": 4,
         "images": 219,
+        "captions": 558,
+        "captions_per_image": 2.547945205479452,
         "image_order_sha256": "746accc2cf8c0610d3ad799d85bc25f74403bdbba505810c190e8e7483682b4e"
       }
     },
     {
       "epoch": 9,
       "train": {
-        "clip_loss": 0.5003306766351064,
-        "concept_loss": 1.806592415880274,
-        "total_loss": 2.3069230627130577,
+        "clip_loss": 0.45534240757977523,
+        "concept_loss": 1.7852353475711964,
+        "total_loss": 2.240577733075177,
         "epoch": 9,
         "batches": 27,
         "images": 864,
+        "captions": 864,
+        "captions_per_image": 1.0,
         "image_order_sha256": "7c87efb9618bd79e1495d70d17ab18915a56e52fd160b2733dcb0fd88103f240",
         "learning_rate": 3.339617843144057e-05,
-        "logit_scale": 99.78289794921875,
-        "concept_logit_scale": 99.85896301269531
+        "logit_scale": 99.78375244140625,
+        "concept_logit_scale": 99.85448455810547
       },
       "validation": {
-        "clip_loss": 2.163658618927002,
+        "clip_loss": 2.068794012069702,
         "batches": 4,
         "images": 219,
+        "captions": 558,
+        "captions_per_image": 2.547945205479452,
         "image_order_sha256": "746accc2cf8c0610d3ad799d85bc25f74403bdbba505810c190e8e7483682b4e"
       }
     },
     {
       "epoch": 10,
       "train": {
-        "clip_loss": 0.427914520656621,
-        "concept_loss": 1.718999531533983,
-        "total_loss": 2.1469140096947,
+        "clip_loss": 0.46547782531491033,
+        "concept_loss": 1.7382594347000122,
+        "total_loss": 2.2037372633262917,
         "epoch": 10,
         "batches": 27,
         "images": 864,
+        "captions": 864,
+        "captions_per_image": 1.0,
         "image_order_sha256": "0bbdba32b5129efcee2b795f7b7783cf89702832258dcf42b4a289e1004ed3fd",
         "learning_rate": 3.0332490768593675e-05,
-        "logit_scale": 99.75568389892578,
-        "concept_logit_scale": 99.87772369384766
+        "logit_scale": 99.74275207519531,
+        "concept_logit_scale": 99.86495971679688
       },
       "validation": {
-        "clip_loss": 2.234933167695999,
+        "clip_loss": 2.0522771775722504,
         "batches": 4,
         "images": 219,
+        "captions": 558,
+        "captions_per_image": 2.547945205479452,
         "image_order_sha256": "746accc2cf8c0610d3ad799d85bc25f74403bdbba505810c190e8e7483682b4e"
       }
     },
     {
       "epoch": 11,
       "train": {
-        "clip_loss": 0.39848921199639636,
-        "concept_loss": 1.6723163392808702,
-        "total_loss": 2.0708055584519,
+        "clip_loss": 0.3768589148918788,
+        "concept_loss": 1.6661519915969283,
+        "total_loss": 2.0430108971065946,
         "epoch": 11,
         "batches": 27,
         "images": 864,
+        "captions": 864,
+        "captions_per_image": 1.0,
         "image_order_sha256": "a12d8635b609355938179ef05456eaab7d25d3c0d4b082d38f9e5d41020723dc",
         "learning_rate": 2.7182161759972257e-05,
-        "logit_scale": 99.73285675048828,
-        "concept_logit_scale": 99.87481689453125
+        "logit_scale": 99.73143005371094,
+        "concept_logit_scale": 99.87067413330078
       },
       "validation": {
-        "clip_loss": 2.0233064889907837,
+        "clip_loss": 2.0172520875930786,
         "batches": 4,
         "images": 219,
+        "captions": 558,
+        "captions_per_image": 2.547945205479452,
         "image_order_sha256": "746accc2cf8c0610d3ad799d85bc25f74403bdbba505810c190e8e7483682b4e"
       }
     },
     {
       "epoch": 12,
       "train": {
-        "clip_loss": 0.367009198224103,
-        "concept_loss": 1.5910928999936138,
-        "total_loss": 1.9581021202935114,
+        "clip_loss": 0.34309794284679274,
+        "concept_loss": 1.5754770702785916,
+        "total_loss": 1.9185750042950664,
         "epoch": 12,
         "batches": 27,
         "images": 864,
+        "captions": 864,
+        "captions_per_image": 1.0,
         "image_order_sha256": "9cbc364e6afcc022aa2a55c655ae5a6c32932190b3d7ac5203750e3e9ad065eb",
         "learning_rate": 2.3996377381658457e-05,
-        "logit_scale": 99.7138900756836,
-        "concept_logit_scale": 99.88386535644531
+        "logit_scale": 99.72886657714844,
+        "concept_logit_scale": 99.8761978149414
       },
       "validation": {
-        "clip_loss": 2.1403247117996216,
+        "clip_loss": 2.203669846057892,
         "batches": 4,
         "images": 219,
+        "captions": 558,
+        "captions_per_image": 2.547945205479452,
         "image_order_sha256": "746accc2cf8c0610d3ad799d85bc25f74403bdbba505810c190e8e7483682b4e"
       }
     },
     {
       "epoch": 13,
       "train": {
-        "clip_loss": 0.34611462774100127,
-        "concept_loss": 1.5300110755143341,
-        "total_loss": 1.8761257153970223,
+        "clip_loss": 0.3459253250448792,
+        "concept_loss": 1.5358112918006048,
+        "total_loss": 1.8817366185011688,
         "epoch": 13,
         "batches": 27,
         "images": 864,
+        "captions": 864,
+        "captions_per_image": 1.0,
         "image_order_sha256": "626f4d585a8d35193d5ea6affa25896fdf2f9ca5e514d25b7e2805aad39e38e2",
         "learning_rate": 2.0826899682170055e-05,
-        "logit_scale": 99.69510650634766,
-        "concept_logit_scale": 99.90492248535156
+        "logit_scale": 99.71397399902344,
+        "concept_logit_scale": 99.87791442871094
       },
       "validation": {
-        "clip_loss": 2.106156677007675,
+        "clip_loss": 2.0217077434062958,
         "batches": 4,
         "images": 219,
+        "captions": 558,
+        "captions_per_image": 2.547945205479452,
         "image_order_sha256": "746accc2cf8c0610d3ad799d85bc25f74403bdbba505810c190e8e7483682b4e"
       }
     },
     {
       "epoch": 14,
       "train": {
-        "clip_loss": 0.3217826885757623,
-        "concept_loss": 1.4500225914849176,
-        "total_loss": 1.7718052819923118,
+        "clip_loss": 0.3321916049829236,
+        "concept_loss": 1.462673787717466,
+        "total_loss": 1.7948653874573883,
         "epoch": 14,
         "batches": 27,
         "images": 864,
+        "captions": 864,
+        "captions_per_image": 1.0,
         "image_order_sha256": "9a0ae7d102e77c43f4d723f005f261d4bea422b721ac08aa2711a5ea4cfabfd9",
         "learning_rate": 1.7725225762055887e-05,
-        "logit_scale": 99.6831283569336,
-        "concept_logit_scale": 99.92292785644531
+        "logit_scale": 99.70156860351562,
+        "concept_logit_scale": 99.89605712890625
       },
       "validation": {
-        "clip_loss": 2.2848408818244934,
+        "clip_loss": 2.151340812444687,
         "batches": 4,
         "images": 219,
+        "captions": 558,
+        "captions_per_image": 2.547945205479452,
         "image_order_sha256": "746accc2cf8c0610d3ad799d85bc25f74403bdbba505810c190e8e7483682b4e"
       }
     },
     {
       "epoch": 15,
       "train": {
-        "clip_loss": 0.28574217828335585,
-        "concept_loss": 1.3929317703953497,
-        "total_loss": 1.678673956129286,
+        "clip_loss": 0.28650807175371384,
+        "concept_loss": 1.423371465117843,
+        "total_loss": 1.7098795308007135,
         "epoch": 15,
         "batches": 27,
         "images": 864,
+        "captions": 864,
+        "captions_per_image": 1.0,
         "image_order_sha256": "f8a3d93dfaa2395016d69c832bc1d93a287fd3571e7bfe5d138979278abe8b09",
         "learning_rate": 1.474175105831797e-05,
-        "logit_scale": 99.67708587646484,
-        "concept_logit_scale": 99.93993377685547
+        "logit_scale": 99.69491577148438,
+        "concept_logit_scale": 99.9105453491211
       },
       "validation": {
-        "clip_loss": 2.3070430159568787,
+        "clip_loss": 2.1834128499031067,
         "batches": 4,
         "images": 219,
+        "captions": 558,
+        "captions_per_image": 2.547945205479452,
         "image_order_sha256": "746accc2cf8c0610d3ad799d85bc25f74403bdbba505810c190e8e7483682b4e"
       }
     },
     {
       "epoch": 16,
       "train": {
-        "clip_loss": 0.22127346418522023,
-        "concept_loss": 1.3585029089892353,
-        "total_loss": 1.579776366551717,
+        "clip_loss": 0.2389329230343854,
+        "concept_loss": 1.3678192209314417,
+        "total_loss": 1.6067521395506683,
         "epoch": 16,
         "batches": 27,
         "images": 864,
+        "captions": 864,
+        "captions_per_image": 1.0,
         "image_order_sha256": "7d0e7b7edbb16aecf986412273e6c35debfaaa318a3242f7b2392f921e7c3ccf",
         "learning_rate": 1.1924950528463692e-05,
-        "logit_scale": 99.67609405517578,
-        "concept_logit_scale": 99.9640121459961
+        "logit_scale": 99.68821716308594,
+        "concept_logit_scale": 99.93050384521484
       },
       "validation": {
-        "clip_loss": 2.3824033737182617,
+        "clip_loss": 2.172446221113205,
         "batches": 4,
         "images": 219,
+        "captions": 558,
+        "captions_per_image": 2.547945205479452,
         "image_order_sha256": "746accc2cf8c0610d3ad799d85bc25f74403bdbba505810c190e8e7483682b4e"
       }
     },
     {
       "epoch": 17,
       "train": {
-        "clip_loss": 0.20608277977616699,
-        "concept_loss": 1.3140541160548176,
-        "total_loss": 1.5201368950031422,
+        "clip_loss": 0.2066288662177545,
+        "concept_loss": 1.3323765926890903,
+        "total_loss": 1.5390054473170527,
         "epoch": 17,
         "batches": 27,
         "images": 864,
+        "captions": 864,
+        "captions_per_image": 1.0,
         "image_order_sha256": "0d1ea01153a351c3cb2115319efe56dc3f30197088b3b4192c7b0bf6e3a5cf7e",
         "learning_rate": 9.320591038161574e-06,
-        "logit_scale": 99.67727661132812,
-        "concept_logit_scale": 99.97869110107422
+        "logit_scale": 99.69035339355469,
+        "concept_logit_scale": 99.9439926147461
       },
       "validation": {
-        "clip_loss": 2.407595217227936,
+        "clip_loss": 2.2610360085964203,
         "batches": 4,
         "images": 219,
+        "captions": 558,
+        "captions_per_image": 2.547945205479452,
         "image_order_sha256": "746accc2cf8c0610d3ad799d85bc25f74403bdbba505810c190e8e7483682b4e"
       }
     },
     {
       "epoch": 18,
       "train": {
-        "clip_loss": 0.17688461827735105,
-        "concept_loss": 1.2817425507086295,
-        "total_loss": 1.4586271709865994,
+        "clip_loss": 0.1755081475884826,
+        "concept_loss": 1.2855931829523157,
+        "total_loss": 1.461101320054796,
         "epoch": 18,
         "batches": 27,
         "images": 864,
+        "captions": 864,
+        "captions_per_image": 1.0,
         "image_order_sha256": "6b899c79a8c86cbfc51611e8e2f9840e674a1117d93167253543467d69d65198",
         "learning_rate": 6.9709877494836314e-06,
-        "logit_scale": 99.67842102050781,
-        "concept_logit_scale": 99.993896484375
+        "logit_scale": 99.69263458251953,
+        "concept_logit_scale": 99.96028900146484
       },
       "validation": {
-        "clip_loss": 2.4591231644153595,
+        "clip_loss": 2.3058168292045593,
         "batches": 4,
         "images": 219,
+        "captions": 558,
+        "captions_per_image": 2.547945205479452,
         "image_order_sha256": "746accc2cf8c0610d3ad799d85bc25f74403bdbba505810c190e8e7483682b4e"
       }
     },
     {
       "epoch": 19,
       "train": {
-        "clip_loss": 0.17712235975044746,
-        "concept_loss": 1.258450914312292,
-        "total_loss": 1.4355732688197382,
+        "clip_loss": 0.17137132419480217,
+        "concept_loss": 1.256357537375556,
+        "total_loss": 1.4277288737120453,
         "epoch": 19,
         "batches": 27,
         "images": 864,
+        "captions": 864,
+        "captions_per_image": 1.0,
         "image_order_sha256": "0ec251701b26d0f1634d64646bce06f5716d8043b683d5d27497f9a789400d55",
         "learning_rate": 4.914316591803475e-06,
-        "logit_scale": 99.67804718017578,
-        "concept_logit_scale": 100.0029525756836
+        "logit_scale": 99.69329833984375,
+        "concept_logit_scale": 99.97416687011719
       },
       "validation": {
-        "clip_loss": 2.460640013217926,
+        "clip_loss": 2.3071608543395996,
         "batches": 4,
         "images": 219,
+        "captions": 558,
+        "captions_per_image": 2.547945205479452,
         "image_order_sha256": "746accc2cf8c0610d3ad799d85bc25f74403bdbba505810c190e8e7483682b4e"
       }
     },
     {
       "epoch": 20,
       "train": {
-        "clip_loss": 0.1580069421066178,
-        "concept_loss": 1.23770758178499,
-        "total_loss": 1.39571452582324,
+        "clip_loss": 0.16150493243778194,
+        "concept_loss": 1.2423660137035228,
+        "total_loss": 1.4038709357932762,
         "epoch": 20,
         "batches": 27,
         "images": 864,
+        "captions": 864,
+        "captions_per_image": 1.0,
         "image_order_sha256": "1668e7f9718fcc8ce0f22d663faf05198392199421913eadce33ae1a1f507a1b",
         "learning_rate": 3.183993986198944e-06,
-        "logit_scale": 99.68046569824219,
-        "concept_logit_scale": 100.0029525756836
+        "logit_scale": 99.69520568847656,
+        "concept_logit_scale": 99.98469543457031
       },
       "validation": {
-        "clip_loss": 2.5233330726623535,
+        "clip_loss": 2.3880129158496857,
         "batches": 4,
         "images": 219,
+        "captions": 558,
+        "captions_per_image": 2.547945205479452,
         "image_order_sha256": "746accc2cf8c0610d3ad799d85bc25f74403bdbba505810c190e8e7483682b4e"
       }
     },
     {
       "epoch": 21,
       "train": {
-        "clip_loss": 0.13554376363754272,
-        "concept_loss": 1.212247497505612,
-        "total_loss": 1.3477912523128368,
+        "clip_loss": 0.1440675495951264,
+        "concept_loss": 1.2155830992592707,
+        "total_loss": 1.3596506560290302,
         "epoch": 21,
         "batches": 27,
         "images": 864,
+        "captions": 864,
+        "captions_per_image": 1.0,
         "image_order_sha256": "18b2805bce5bf108194d9ca148bb17b22c6c1456be969a4bf2910c25a69ee45a",
         "learning_rate": 1.8081339014848848e-06,
-        "logit_scale": 99.68151092529297,
-        "concept_logit_scale": 100.0029525756836
+        "logit_scale": 99.6952896118164,
+        "concept_logit_scale": 99.9920425415039
       },
       "validation": {
-        "clip_loss": 2.5356911420822144,
+        "clip_loss": 2.3980385959148407,
         "batches": 4,
         "images": 219,
+        "captions": 558,
+        "captions_per_image": 2.547945205479452,
         "image_order_sha256": "746accc2cf8c0610d3ad799d85bc25f74403bdbba505810c190e8e7483682b4e"
       }
     },
     {
       "epoch": 22,
       "train": {
-        "clip_loss": 0.14602449081010288,
-        "concept_loss": 1.200977087020874,
-        "total_loss": 1.3470015746575814,
+        "clip_loss": 0.15015737822762243,
+        "concept_loss": 1.2083256752402693,
+        "total_loss": 1.3584830584349457,
         "epoch": 22,
         "batches": 27,
         "images": 864,
+        "captions": 864,
+        "captions_per_image": 1.0,
         "image_order_sha256": "0cd70bcf0cc1cab27b6cde0baefda2d43ab593ba80c14aef228f1874b12061b2",
         "learning_rate": 8.090910635314669e-07,
-        "logit_scale": 99.68122100830078,
-        "concept_logit_scale": 100.0029525756836
+        "logit_scale": 99.69510650634766,
+        "concept_logit_scale": 99.99556732177734
       },
       "validation": {
-        "clip_loss": 2.5497665405273438,
+        "clip_loss": 2.4036556482315063,
         "batches": 4,
         "images": 219,
+        "captions": 558,
+        "captions_per_image": 2.547945205479452,
         "image_order_sha256": "746accc2cf8c0610d3ad799d85bc25f74403bdbba505810c190e8e7483682b4e"
       }
     },
     {
       "epoch": 23,
       "train": {
-        "clip_loss": 0.1303875820228347,
-        "concept_loss": 1.1965707032768815,
-        "total_loss": 1.326958281022531,
+        "clip_loss": 0.12755065025002868,
+        "concept_loss": 1.1991335860005132,
+        "total_loss": 1.3266842365264893,
         "epoch": 23,
         "batches": 27,
         "images": 864,
+        "captions": 864,
+        "captions_per_image": 1.0,
         "image_order_sha256": "8d59dd3a8a9ef0d9acb5d4de7895eb011a8504193475d1cef8b0e57320c6ac45",
         "learning_rate": 2.030977397204592e-07,
-        "logit_scale": 99.68122100830078,
-        "concept_logit_scale": 100.0029525756836
+        "logit_scale": 99.69510650634766,
+        "concept_logit_scale": 99.9970474243164
       },
       "validation": {
-        "clip_loss": 2.5590731501579285,
+        "clip_loss": 2.414465367794037,
         "batches": 4,
         "images": 219,
+        "captions": 558,
+        "captions_per_image": 2.547945205479452,
         "image_order_sha256": "746accc2cf8c0610d3ad799d85bc25f74403bdbba505810c190e8e7483682b4e"
       }
     },
     {
       "epoch": 24,
       "train": {
-        "clip_loss": 0.12975060622449275,
-        "concept_loss": 1.1949558103526081,
-        "total_loss": 1.324706413127758,
+        "clip_loss": 0.13664365063110986,
+        "concept_loss": 1.1983403673878423,
+        "total_loss": 1.3349840111202664,
         "epoch": 24,
         "batches": 27,
         "images": 864,
+        "captions": 864,
+        "captions_per_image": 1.0,
         "image_order_sha256": "28e548406c41f083d360c4323579a5e55dbb1aadf74a5e06348fba250f92f7d9",
         "learning_rate": 0.0,
-        "logit_scale": 99.68122100830078,
-        "concept_logit_scale": 100.0029525756836
+        "logit_scale": 99.69510650634766,
+        "concept_logit_scale": 99.9970474243164
       },
       "validation": {
-        "clip_loss": 2.5606848001480103,
+        "clip_loss": 2.4158174097537994,
         "batches": 4,
         "images": 219,
+        "captions": 558,
+        "captions_per_image": 2.547945205479452,
         "image_order_sha256": "746accc2cf8c0610d3ad799d85bc25f74403bdbba505810c190e8e7483682b4e"
       }
     }

@@ -18,4 +18,4 @@ models:
     model_name: ViT-B-32
     pretrained_tag: laion2b_s34b_b79k
     checkpoint_type: finetune
-    checkpoint_path: ../../results/open_clip_finetune_plot_short/ckp_best.pth
+    checkpoint_path: ../../results/open_clip_finetune/ckp_best.pth
