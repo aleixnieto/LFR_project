@@ -79,6 +79,24 @@ Use `python open-clip/main_zeroshot.py --list-pretrained` to list model/tag pair
 
 ## Image-to-text retrieval (in progress)
 
+### Comparing retrieval checkpoints
+
+Run `python open-clip/main_retrieval_compare.py --device cpu` to evaluate the
+models in `open-clip/configs/retrieval_compare_config.yaml` on the same images
+and caption pool. All selected checkpoint files must exist locally; missing files
+are reported before evaluation starts. Each model uses its own preprocessing and
+re-encodes the captions with its own text encoder.
+
+For a baseline smoke test:
+
+```bash
+python open-clip/main_retrieval_compare.py --model baseline --max-samples 2 --device cpu
+```
+
+The terminal table reports Accuracy@1, @3, and @5 with text-membership matching.
+
+### Single-model retrieval
+
 The entry point is `open-clip/main_retrieval.py`, configured by
 `open-clip/configs/retrieval_config.yaml` with `dataset_split: test`.
 Paths in the YAML resolve relative to the configuration file.
