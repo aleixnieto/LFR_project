@@ -93,7 +93,24 @@ For a baseline smoke test:
 python open-clip/main_retrieval_compare.py --model baseline --max-samples 2 --device cpu
 ```
 
-The terminal table reports Accuracy@1, @3, and @5 with text-membership matching.
+The terminal table reports the Accuracy@k cutoffs configured in the YAML with
+text-membership matching. Configure the evaluation and example logging using:
+
+```yaml
+ks: [1, 3, 5, 10]
+num_captions: 10
+log_every: 50
+```
+
+`ks` is a non-empty list of distinct positive integer cutoffs. `num_captions`
+sets how many ranked captions are logged per example, and `log_every` selects
+every Nth evaluated image (both must be positive integers). Ranking retains
+enough candidates for the largest cutoff and the requested example count,
+limited by the available caption pool.
+These settings are also supported in the single-model retrieval configuration.
+Logs include the examples and accuracy summaries without timestamps:
+`comparison.log` in the comparison output directory and `retrieval.log` in the
+single-model output directory. Set `--output-dir` to change those directories.
 
 ### Single-model retrieval
 
@@ -102,12 +119,14 @@ The entry point is `open-clip/main_retrieval.py`, configured by
 Paths in the YAML resolve relative to the configuration file.
 
 Run `python open-clip/main_retrieval.py` to encode images and captions using the
-local pretrained OpenCLIP checkpoint. Duplicate caption
-strings are removed within each image, but captions shared by different images
-remain separate candidates.
+local pretrained OpenCLIP checkpoint. Both retrieval entry points remove exact
+duplicate caption strings globally from the selected images' candidate pool
+before encoding, preserving first-occurrence order. Captions shared by multiple
+images appear only once in the ranking; each image's ground-truth caption list
+is unchanged.
 Each image ranks captions by cosine similarity. A match is
 correct when the retrieved text is in the query image's ground-truth caption list.
-The script prints Accuracy@1, @3, and @5: the fraction of images with at least one
+The script prints each configured Accuracy@k (default: 1, 3, 5, 10): the fraction of images with at least one
 matching caption among the top K candidates (using all candidates if fewer than K
 are available). 
 

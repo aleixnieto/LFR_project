@@ -9,3 +9,8 @@ json_path: ../../dataset_rsicd.json
 dataset_split: test
 # Included for compatibility with the shared dataset configuration loader.
 class_dir: ../../txtclasses_rsicd
+
+# Accuracy cutoffs and example logging settings (all must be positive integers).
+ks: [1, 3, 5, 10]
+num_captions: 10
+log_every: 50
