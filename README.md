@@ -77,59 +77,6 @@ Results: results/open_clip_zeroshot
 
 Use `python open-clip/main_zeroshot.py --list-pretrained` to list model/tag pairs supported by the installed OpenCLIP version. Listed pairs still need matching local weights and preprocessing suport.
 
-## Image-to-text retrieval (in progress)
-
-### Comparing retrieval checkpoints
-
-Run `python open-clip/main_retrieval_compare.py --device cpu` to evaluate the
-models in `open-clip/configs/retrieval_compare_config.yaml` on the same images
-and caption pool. All selected checkpoint files must exist locally; missing files
-are reported before evaluation starts. Each model uses its own preprocessing and
-re-encodes the captions with its own text encoder.
-
-For a baseline smoke test:
-
-```bash
-python open-clip/main_retrieval_compare.py --model baseline --max-samples 2 --device cpu
-```
-
-The terminal table reports the Accuracy@k cutoffs configured in the YAML with
-text-membership matching. Configure the evaluation and example logging using:
-
-```yaml
-ks: [1, 3, 5, 10]
-num_captions: 10
-log_every: 50
-```
-
-`ks` is a non-empty list of distinct positive integer cutoffs. `num_captions`
-sets how many ranked captions are logged per example, and `log_every` selects
-every Nth evaluated image (both must be positive integers). Ranking retains
-enough candidates for the largest cutoff and the requested example count,
-limited by the available caption pool.
-These settings are also supported in the single-model retrieval configuration.
-Logs include the examples and accuracy summaries without timestamps:
-`comparison.log` in the comparison output directory and `retrieval.log` in the
-single-model output directory. Set `--output-dir` to change those directories.
-
-### Single-model retrieval
-
-The entry point is `open-clip/main_retrieval.py`, configured by
-`open-clip/configs/retrieval_config.yaml` with `dataset_split: test`.
-Paths in the YAML resolve relative to the configuration file.
-
-Run `python open-clip/main_retrieval.py` to encode images and captions using the
-local pretrained OpenCLIP checkpoint. Both retrieval entry points remove exact
-duplicate caption strings globally from the selected images' candidate pool
-before encoding, preserving first-occurrence order. Captions shared by multiple
-images appear only once in the ranking; each image's ground-truth caption list
-is unchanged.
-Each image ranks captions by cosine similarity. A match is
-correct when the retrieved text is in the query image's ground-truth caption list.
-The script prints each configured Accuracy@k (default: 1, 3, 5, 10): the fraction of images with at least one
-matching caption among the top K candidates (using all candidates if fewer than K
-are available).
-
 ### Comparing models (zero-shot)
 
 `main_zeroshot_compare.py` evaluates and compares the models listed in `open-clip/configs/zeroshot_compare_config.yaml` on the configured test dataset.
@@ -428,24 +375,14 @@ where the four weights are the corresponding `*_loss_weight` configuration value
 
 Run `python open-clip/main_retrieval_compare.py --device cuda` to evaluate the
 models in `open-clip/configs/retrieval_compare_config.yaml` on the same images
-and caption pool. All selected checkpoint files must exist locally; missing files
-are reported before evaluation starts. 
+and caption pool. All selected checkpoint files must exist locally.
 
 ```bash
-python open-clip/main_retrieval_compare.py --model baseline --device cuda
+python open-clip/main_retrieval_compare.py --device cuda
 ```
 
 The terminal table reports the configured Accuracy@k cutoffs (currently 1, 3, 5,
-and 10) with text-membership matching.
-
-The latest full test run used 1,093 images and 3,331 globally unique captions.
-Accuracy values are fractions; the best value in each column is bold.
-
-| Model | Accuracy@1 | Accuracy@3 | Accuracy@5 | Accuracy@10 |
-| --- | ---: | ---: | ---: | ---: |
-| baseline | 0.0631 | 0.1583 | 0.2260 | 0.3541 |
-| supervised_all_unique | 0.1006 | 0.2516 | **0.3614** | **0.5380** |
-| semiclip | **0.1134** | **0.2543** | 0.3568 | 0.5142 |
+and 10).
 
 See [image-to-text retrieval results](open-clip/retrieval-results.md) for the
 comparison table, metric definition, and findings.
