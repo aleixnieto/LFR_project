@@ -128,7 +128,7 @@ Each image ranks captions by cosine similarity. A match is
 correct when the retrieved text is in the query image's ground-truth caption list.
 The script prints each configured Accuracy@k (default: 1, 3, 5, 10): the fraction of images with at least one
 matching caption among the top K candidates (using all candidates if fewer than K
-are available). 
+are available).
 
 ### Comparing models (zero-shot)
 
@@ -421,6 +421,35 @@ where the four weights are the corresponding `*_loss_weight` configuration value
 
 **Optimization, validation, and reproducibility:** Both stages use AdamW with the configured betas and epsilon, excluding bias, normalization, scalar, and logit-scale parameters from weight decay. Each stage creates its own optimizer and cosine schedule with the configured warmup; Stage 2 never reuses Stage-1 optimizer state. Model and classifier logit scales are clamped after every update so their exponentials are at most approximately 100. Validation uses every unique caption and the symmetric multi-positive CLIP loss. Metrics include component losses, learning rate, scales, processed counts, selection statistics, and SHA-256 hashes of image order. Checkpoints include model/module, optimizer, scheduler, configuration, history, provenance, and RNG states; Python, NumPy, PyTorch, and available CUDA RNGs are seeded from `seed`.
 
+## Retrieval evaluation
+
+### Image-to-text retrieval
+
+
+Run `python open-clip/main_retrieval_compare.py --device cuda` to evaluate the
+models in `open-clip/configs/retrieval_compare_config.yaml` on the same images
+and caption pool. All selected checkpoint files must exist locally; missing files
+are reported before evaluation starts. 
+
+```bash
+python open-clip/main_retrieval_compare.py --model baseline --device cuda
+```
+
+The terminal table reports the configured Accuracy@k cutoffs (currently 1, 3, 5,
+and 10) with text-membership matching.
+
+The latest full test run used 1,093 images and 3,331 globally unique captions.
+Accuracy values are fractions; the best value in each column is bold.
+
+| Model | Accuracy@1 | Accuracy@3 | Accuracy@5 | Accuracy@10 |
+| --- | ---: | ---: | ---: | ---: |
+| baseline | 0.0631 | 0.1583 | 0.2260 | 0.3541 |
+| supervised_all_unique | 0.1006 | 0.2516 | **0.3614** | **0.5380** |
+| semiclip | **0.1134** | **0.2543** | 0.3568 | 0.5142 |
+
+See [image-to-text retrieval results](open-clip/retrieval-results.md) for the
+comparison table, metric definition, and findings.
+
 
 ## Experiments
 
@@ -430,3 +459,4 @@ Current experiments:
 1. Ablation study for fine-tuning hyper-parameters: [Readme here!](open-clip/configs/ablations/README.md)
 2. Evaluation of caption usage strategies: [Readme here!](open-clip/configs/experiment_caption_strategy/README.md)
 3. Two-stage SemiCLIP training with unlabeled RSICD images: [Readme here!](open-clip/semiclip/README.md)
+4. Image-to-text retrieval comparison: [Results here](open-clip/retrieval-results.md)
