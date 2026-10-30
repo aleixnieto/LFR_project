@@ -1,0 +1,149 @@
+{
+  "models": [
+    {
+      "label": "A_baseline",
+      "model_name": "ViT-B-32",
+      "pretrained_tag": "laion2b_s34b_b79k",
+      "checkpoint_path": "/home/casko/phd-code/LFR_project/report-results/models/ViT-B-32-laion2b_s34b_b79k.bin",
+      "checkpoint_type": "openclip",
+      "dataset_split": "test",
+      "image_dir": "/home/casko/phd-code/LFR_project/RSICD_images",
+      "json_path": "/home/casko/phd-code/LFR_project/dataset_rsicd.json",
+      "device": "cuda",
+      "num_samples": 1093,
+      "num_captions": 3331,
+      "max_samples": null,
+      "retrieval_config": {
+        "ks": [
+          1,
+          3,
+          5,
+          10
+        ],
+        "num_captions": 10,
+        "log_every": 100
+      },
+      "matching_rule": "retrieved text is in the query image's caption list",
+      "accuracy_at_1": 0.06312900274473925,
+      "accuracy_at_3": 0.15827996340347666,
+      "accuracy_at_5": 0.22598353156450138,
+      "accuracy_at_10": 0.35407136322049404
+    },
+    {
+      "label": "B1_supervised_all_unique",
+      "model_name": "ViT-B-32",
+      "pretrained_tag": "laion2b_s34b_b79k",
+      "checkpoint_path": "/home/casko/phd-code/LFR_project/report-results/models/open_clip_finetune_all_unique_per_caption_ckp_best.pth",
+      "checkpoint_type": "finetune",
+      "dataset_split": "test",
+      "image_dir": "/home/casko/phd-code/LFR_project/RSICD_images",
+      "json_path": "/home/casko/phd-code/LFR_project/dataset_rsicd.json",
+      "device": "cuda",
+      "num_samples": 1093,
+      "num_captions": 3331,
+      "max_samples": null,
+      "retrieval_config": {
+        "ks": [
+          1,
+          3,
+          5,
+          10
+        ],
+        "num_captions": 10,
+        "log_every": 100
+      },
+      "matching_rule": "retrieved text is in the query image's caption list",
+      "accuracy_at_1": 0.12717291857273558,
+      "accuracy_at_3": 0.2708142726440988,
+      "accuracy_at_5": 0.3559011893870082,
+      "accuracy_at_10": 0.5242451967063129
+    },
+    {
+      "label": "B2_supervised_random_one",
+      "model_name": "ViT-B-32",
+      "pretrained_tag": "laion2b_s34b_b79k",
+      "checkpoint_path": "/home/casko/phd-code/LFR_project/report-results/models/open_clip_finetune_random_one_per_caption_ckp_best.pth",
+      "checkpoint_type": "finetune",
+      "dataset_split": "test",
+      "image_dir": "/home/casko/phd-code/LFR_project/RSICD_images",
+      "json_path": "/home/casko/phd-code/LFR_project/dataset_rsicd.json",
+      "device": "cuda",
+      "num_samples": 1093,
+      "num_captions": 3331,
+      "max_samples": null,
+      "retrieval_config": {
+        "ks": [
+          1,
+          3,
+          5,
+          10
+        ],
+        "num_captions": 10,
+        "log_every": 100
+      },
+      "matching_rule": "retrieved text is in the query image's caption list",
+      "accuracy_at_1": 0.09972552607502287,
+      "accuracy_at_3": 0.20951509606587373,
+      "accuracy_at_5": 0.2982616651418115,
+      "accuracy_at_10": 0.4537968892955169
+    },
+    {
+      "label": "C1_semiclip_paper_caption_strategy",
+      "model_name": "ViT-B-32",
+      "pretrained_tag": "laion2b_s34b_b79k",
+      "checkpoint_path": "/home/casko/phd-code/LFR_project/report-results/models/semiclip_paper_1gpu_seed42_stage2_final.pt",
+      "checkpoint_type": "finetune",
+      "dataset_split": "test",
+      "image_dir": "/home/casko/phd-code/LFR_project/RSICD_images",
+      "json_path": "/home/casko/phd-code/LFR_project/dataset_rsicd.json",
+      "device": "cuda",
+      "num_samples": 1093,
+      "num_captions": 3331,
+      "max_samples": null,
+      "retrieval_config": {
+        "ks": [
+          1,
+          3,
+          5,
+          10
+        ],
+        "num_captions": 10,
+        "log_every": 100
+      },
+      "matching_rule": "retrieved text is in the query image's caption list",
+      "accuracy_at_1": 0.10155535224153706,
+      "accuracy_at_3": 0.24977127172918573,
+      "accuracy_at_5": 0.3586459286367795,
+      "accuracy_at_10": 0.5086916742909423
+    },
+    {
+      "label": "C2_semiclip_all_unique",
+      "model_name": "ViT-B-32",
+      "pretrained_tag": "laion2b_s34b_b79k",
+      "checkpoint_path": "/home/casko/phd-code/LFR_project/report-results/models/semiclip_paper_1gpu_all_unique_seed42_stage2_final.pt",
+      "checkpoint_type": "finetune",
+      "dataset_split": "test",
+      "image_dir": "/home/casko/phd-code/LFR_project/RSICD_images",
+      "json_path": "/home/casko/phd-code/LFR_project/dataset_rsicd.json",
+      "device": "cuda",
+      "num_samples": 1093,
+      "num_captions": 3331,
+      "max_samples": null,
+      "retrieval_config": {
+        "ks": [
+          1,
+          3,
+          5,
+          10
+        ],
+        "num_captions": 10,
+        "log_every": 100
+      },
+      "matching_rule": "retrieved text is in the query image's caption list",
+      "accuracy_at_1": 0.11802378774016468,
+      "accuracy_at_3": 0.2817932296431839,
+      "accuracy_at_5": 0.37511436413540716,
+      "accuracy_at_10": 0.5315645013723697
+    }
+  ]
+}

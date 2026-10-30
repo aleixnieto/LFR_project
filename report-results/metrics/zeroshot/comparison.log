@@ -1,0 +1,23 @@
+2026-10-30 14:59:06,991 INFO Device: cuda
+2026-10-30 14:59:06,992 INFO Selected models: A_baseline, B1_supervised_all_unique, B2_supervised_random_one, C1_semiclip_paper_caption_strategy, C2_semiclip_all_unique
+2026-10-30 14:59:06,992 INFO [A_baseline] Loading openclip checkpoint (ViT-B-32 / laion2b_s34b_b79k): /home/casko/phd-code/LFR_project/report-results/models/ViT-B-32-laion2b_s34b_b79k.bin
+2026-10-30 14:59:08,735 INFO [A_baseline] Test images: 1093; classes: 31; batch size: 32
+2026-10-30 14:59:08,735 INFO [A_baseline] Encoding class prompts
+2026-10-30 14:59:09,205 INFO [A_baseline] Running image evaluation
+2026-10-30 14:59:13,479 INFO [B1_supervised_all_unique] Loading finetune checkpoint (ViT-B-32 / laion2b_s34b_b79k): /home/casko/phd-code/LFR_project/report-results/models/open_clip_finetune_all_unique_per_caption_ckp_best.pth
+2026-10-30 14:59:15,453 INFO [B1_supervised_all_unique] Test images: 1093; classes: 31; batch size: 32
+2026-10-30 14:59:15,455 INFO [B1_supervised_all_unique] Encoding class prompts
+2026-10-30 14:59:15,543 INFO [B1_supervised_all_unique] Running image evaluation
+2026-10-30 14:59:20,004 INFO [B2_supervised_random_one] Loading finetune checkpoint (ViT-B-32 / laion2b_s34b_b79k): /home/casko/phd-code/LFR_project/report-results/models/open_clip_finetune_random_one_per_caption_ckp_best.pth
+2026-10-30 14:59:21,951 INFO [B2_supervised_random_one] Test images: 1093; classes: 31; batch size: 32
+2026-10-30 14:59:21,953 INFO [B2_supervised_random_one] Encoding class prompts
+2026-10-30 14:59:22,042 INFO [B2_supervised_random_one] Running image evaluation
+2026-10-30 14:59:26,418 INFO [C1_semiclip_paper_caption_strategy] Loading finetune checkpoint (ViT-B-32 / laion2b_s34b_b79k): /home/casko/phd-code/LFR_project/report-results/models/semiclip_paper_1gpu_seed42_stage2_final.pt
+2026-10-30 14:59:28,381 INFO [C1_semiclip_paper_caption_strategy] Test images: 1093; classes: 31; batch size: 32
+2026-10-30 14:59:28,383 INFO [C1_semiclip_paper_caption_strategy] Encoding class prompts
+2026-10-30 14:59:28,471 INFO [C1_semiclip_paper_caption_strategy] Running image evaluation
+2026-10-30 14:59:32,950 INFO [C2_semiclip_all_unique] Loading finetune checkpoint (ViT-B-32 / laion2b_s34b_b79k): /home/casko/phd-code/LFR_project/report-results/models/semiclip_paper_1gpu_all_unique_seed42_stage2_final.pt
+2026-10-30 14:59:34,923 INFO [C2_semiclip_all_unique] Test images: 1093; classes: 31; batch size: 32
+2026-10-30 14:59:34,926 INFO [C2_semiclip_all_unique] Encoding class prompts
+2026-10-30 14:59:35,015 INFO [C2_semiclip_all_unique] Running image evaluation
+2026-10-30 14:59:41,003 INFO Comparison complete. Summary: /home/casko/phd-code/LFR_project/report-results/metrics/zeroshot/summary.json; metrics plot: /home/casko/phd-code/LFR_project/report-results/metrics/zeroshot/model_comparison.png; confusion plot: /home/casko/phd-code/LFR_project/report-results/metrics/zeroshot/confusion_matrices_comparison.png
