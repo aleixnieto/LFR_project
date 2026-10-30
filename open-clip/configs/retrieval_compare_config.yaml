@@ -1,0 +1,30 @@
+# Shared retrieval dataset. Paths resolve relative to this configuration file.
+image_dir: ../../RSICD_images
+json_path: ../../dataset_rsicd.json
+dataset_split: test
+# Included for compatibility with the shared dataset configuration loader.
+class_dir: ../../txtclasses_rsicd
+
+# Accuracy cutoffs and example logging settings (all must be positive integers).
+ks: [1, 3, 5, 10]
+num_captions: 10
+log_every: 100
+
+models:
+  - label: baseline
+    model_name: ViT-B-32
+    pretrained_tag: laion2b_s34b_b79k
+    checkpoint_type: openclip
+    checkpoint_path: ../../weights/open_clip/ViT-B-32-laion2b_s34b_b79k.bin
+
+  - label: supervised_all_unique
+    model_name: ViT-B-32
+    pretrained_tag: laion2b_s34b_b79k
+    checkpoint_type: finetune
+    checkpoint_path: ../../results/experiment_caption_strategy_2/open_clip_finetune_all_unique_per_caption/ckp_best.pth
+
+  - label: semiclip
+    model_name: ViT-B-32
+    pretrained_tag: laion2b_s34b_b79k
+    checkpoint_type: finetune
+    checkpoint_path: ../../results/open_clip_semiclip_paper_1gpu_seed42/stage2_final.pt

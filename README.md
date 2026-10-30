@@ -368,6 +368,25 @@ where the four weights are the corresponding `*_loss_weight` configuration value
 
 **Optimization, validation, and reproducibility:** Both stages use AdamW with the configured betas and epsilon, excluding bias, normalization, scalar, and logit-scale parameters from weight decay. Each stage creates its own optimizer and cosine schedule with the configured warmup; Stage 2 never reuses Stage-1 optimizer state. Model and classifier logit scales are clamped after every update so their exponentials are at most approximately 100. Validation uses every unique caption and the symmetric multi-positive CLIP loss. Metrics include component losses, learning rate, scales, processed counts, selection statistics, and SHA-256 hashes of image order. Checkpoints include model/module, optimizer, scheduler, configuration, history, provenance, and RNG states; Python, NumPy, PyTorch, and available CUDA RNGs are seeded from `seed`.
 
+## Retrieval evaluation
+
+### Image-to-text retrieval
+
+
+Run `python open-clip/main_retrieval_compare.py --device cuda` to evaluate the
+models in `open-clip/configs/retrieval_compare_config.yaml` on the same images
+and caption pool. All selected checkpoint files must exist locally.
+
+```bash
+python open-clip/main_retrieval_compare.py --device cuda
+```
+
+The terminal table reports the configured Accuracy@k cutoffs (currently 1, 3, 5,
+and 10).
+
+See [image-to-text retrieval results](open-clip/retrieval-results.md) for the
+comparison table, metric definition, and findings.
+
 
 ## Experiments
 
@@ -377,3 +396,4 @@ Current experiments:
 1. Ablation study for fine-tuning hyper-parameters: [Readme here!](open-clip/configs/ablations/README.md)
 2. Evaluation of caption usage strategies: [Readme here!](open-clip/configs/experiment_caption_strategy/README.md)
 3. Two-stage SemiCLIP training with unlabeled RSICD images: [Readme here!](open-clip/semiclip/README.md)
+4. Image-to-text retrieval comparison: [Results here](open-clip/retrieval-results.md)
