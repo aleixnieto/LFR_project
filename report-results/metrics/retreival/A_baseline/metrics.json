@@ -1,0 +1,29 @@
+{
+  "label": "A_baseline",
+  "model_name": "ViT-B-32",
+  "pretrained_tag": "laion2b_s34b_b79k",
+  "checkpoint_path": "/home/casko/phd-code/LFR_project/report-results/models/ViT-B-32-laion2b_s34b_b79k.bin",
+  "checkpoint_type": "openclip",
+  "dataset_split": "test",
+  "image_dir": "/home/casko/phd-code/LFR_project/RSICD_images",
+  "json_path": "/home/casko/phd-code/LFR_project/dataset_rsicd.json",
+  "device": "cuda",
+  "num_samples": 1093,
+  "num_captions": 3331,
+  "max_samples": null,
+  "retrieval_config": {
+    "ks": [
+      1,
+      3,
+      5,
+      10
+    ],
+    "num_captions": 10,
+    "log_every": 100
+  },
+  "matching_rule": "retrieved text is in the query image's caption list",
+  "accuracy_at_1": 0.06312900274473925,
+  "accuracy_at_3": 0.15827996340347666,
+  "accuracy_at_5": 0.22598353156450138,
+  "accuracy_at_10": 0.35407136322049404
+}

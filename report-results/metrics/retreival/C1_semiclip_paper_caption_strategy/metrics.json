@@ -1,0 +1,29 @@
+{
+  "label": "C1_semiclip_paper_caption_strategy",
+  "model_name": "ViT-B-32",
+  "pretrained_tag": "laion2b_s34b_b79k",
+  "checkpoint_path": "/home/casko/phd-code/LFR_project/report-results/models/semiclip_paper_1gpu_seed42_stage2_final.pt",
+  "checkpoint_type": "finetune",
+  "dataset_split": "test",
+  "image_dir": "/home/casko/phd-code/LFR_project/RSICD_images",
+  "json_path": "/home/casko/phd-code/LFR_project/dataset_rsicd.json",
+  "device": "cuda",
+  "num_samples": 1093,
+  "num_captions": 3331,
+  "max_samples": null,
+  "retrieval_config": {
+    "ks": [
+      1,
+      3,
+      5,
+      10
+    ],
+    "num_captions": 10,
+    "log_every": 100
+  },
+  "matching_rule": "retrieved text is in the query image's caption list",
+  "accuracy_at_1": 0.10155535224153706,
+  "accuracy_at_3": 0.24977127172918573,
+  "accuracy_at_5": 0.3586459286367795,
+  "accuracy_at_10": 0.5086916742909423
+}

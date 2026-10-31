@@ -1,0 +1,54 @@
+{
+  "models": [
+    {
+      "label": "A_baseline",
+      "checkpoint_path": "/home/casko/phd-code/LFR_project/report-results/models/ViT-B-32-laion2b_s34b_b79k.bin",
+      "checkpoint_type": "openclip",
+      "num_samples": 1093,
+      "accuracy": 0.6267154620311071,
+      "weighted_precision": 0.6159655254269344,
+      "weighted_recall": 0.6267154620311071,
+      "weighted_f1": 0.5908988567114914
+    },
+    {
+      "label": "B1_supervised_all_unique",
+      "checkpoint_path": "/home/casko/phd-code/LFR_project/report-results/models/open_clip_finetune_all_unique_per_caption_ckp_best.pth",
+      "checkpoint_type": "finetune",
+      "num_samples": 1093,
+      "accuracy": 0.8627630375114365,
+      "weighted_precision": 0.8835010978149095,
+      "weighted_recall": 0.8627630375114365,
+      "weighted_f1": 0.8496433215651146
+    },
+    {
+      "label": "B2_supervised_random_one",
+      "checkpoint_path": "/home/casko/phd-code/LFR_project/report-results/models/open_clip_finetune_random_one_per_caption_ckp_best.pth",
+      "checkpoint_type": "finetune",
+      "num_samples": 1093,
+      "accuracy": 0.8225068618481244,
+      "weighted_precision": 0.8439809997233366,
+      "weighted_recall": 0.8225068618481244,
+      "weighted_f1": 0.8134524732182797
+    },
+    {
+      "label": "C1_semiclip_paper_caption_strategy",
+      "checkpoint_path": "/home/casko/phd-code/LFR_project/report-results/models/semiclip_paper_1gpu_seed42_stage2_final.pt",
+      "checkpoint_type": "finetune",
+      "num_samples": 1093,
+      "accuracy": 0.8563586459286368,
+      "weighted_precision": 0.8657904511068256,
+      "weighted_recall": 0.8563586459286368,
+      "weighted_f1": 0.8530702617356635
+    },
+    {
+      "label": "C2_semiclip_all_unique",
+      "checkpoint_path": "/home/casko/phd-code/LFR_project/report-results/models/semiclip_paper_1gpu_all_unique_seed42_stage2_final.pt",
+      "checkpoint_type": "finetune",
+      "num_samples": 1093,
+      "accuracy": 0.8719121683440073,
+      "weighted_precision": 0.879387875001382,
+      "weighted_recall": 0.8719121683440073,
+      "weighted_f1": 0.8679548066597742
+    }
+  ]
+}

@@ -1,0 +1,201 @@
+{
+  "label": "A_baseline",
+  "model_name": "ViT-B-32",
+  "pretrained_tag": "laion2b_s34b_b79k",
+  "checkpoint_path": "/home/casko/phd-code/LFR_project/report-results/models/ViT-B-32-laion2b_s34b_b79k.bin",
+  "checkpoint_type": "openclip",
+  "num_samples": 1093,
+  "num_classes": 31,
+  "accuracy": 0.6267154620311071,
+  "weighted_precision": 0.6159655254269344,
+  "weighted_recall": 0.6267154620311071,
+  "weighted_f1": 0.5908988567114914,
+  "per_class": {
+    "Airport": {
+      "precision": 0.95,
+      "recall": 0.9047619047619048,
+      "f1": 0.926829268292683,
+      "support": 42
+    },
+    "BareLand": {
+      "precision": 0.14634146341463414,
+      "recall": 0.1935483870967742,
+      "f1": 0.16666666666666666,
+      "support": 31
+    },
+    "BaseballField": {
+      "precision": 0.6,
+      "recall": 0.9642857142857143,
+      "f1": 0.7397260273972602,
+      "support": 28
+    },
+    "Beach": {
+      "precision": 0.9523809523809523,
+      "recall": 1.0,
+      "f1": 0.975609756097561,
+      "support": 40
+    },
+    "Bridge": {
+      "precision": 0.8461538461538461,
+      "recall": 0.9565217391304348,
+      "f1": 0.8979591836734694,
+      "support": 46
+    },
+    "Center": {
+      "precision": 0.20618556701030927,
+      "recall": 0.7692307692307693,
+      "f1": 0.3252032520325203,
+      "support": 26
+    },
+    "Church": {
+      "precision": 0.75,
+      "recall": 0.25,
+      "f1": 0.375,
+      "support": 24
+    },
+    "Commercial": {
+      "precision": 0.23809523809523808,
+      "recall": 0.14285714285714285,
+      "f1": 0.17857142857142858,
+      "support": 35
+    },
+    "DenseResidential": {
+      "precision": 0.6031746031746031,
+      "recall": 0.926829268292683,
+      "f1": 0.7307692307692307,
+      "support": 41
+    },
+    "Desert": {
+      "precision": 0.6363636363636364,
+      "recall": 0.9333333333333333,
+      "f1": 0.7567567567567568,
+      "support": 30
+    },
+    "Farmland": {
+      "precision": 0.8888888888888888,
+      "recall": 0.8648648648648649,
+      "f1": 0.8767123287671232,
+      "support": 37
+    },
+    "Forest": {
+      "precision": 0.9523809523809523,
+      "recall": 0.8,
+      "f1": 0.8695652173913043,
+      "support": 25
+    },
+    "Industrial": {
+      "precision": 0.7931034482758621,
+      "recall": 0.5897435897435898,
+      "f1": 0.6764705882352942,
+      "support": 39
+    },
+    "Meadow": {
+      "precision": 1.0,
+      "recall": 0.03571428571428571,
+      "f1": 0.06896551724137931,
+      "support": 28
+    },
+    "MediumResidential": {
+      "precision": 0.40425531914893614,
+      "recall": 0.6551724137931034,
+      "f1": 0.5,
+      "support": 29
+    },
+    "Mountain": {
+      "precision": 1.0,
+      "recall": 0.7941176470588235,
+      "f1": 0.8852459016393442,
+      "support": 34
+    },
+    "Park": {
+      "precision": 0.4444444444444444,
+      "recall": 0.45714285714285713,
+      "f1": 0.4507042253521127,
+      "support": 35
+    },
+    "Parking": {
+      "precision": 0.8478260869565217,
+      "recall": 1.0,
+      "f1": 0.9176470588235294,
+      "support": 39
+    },
+    "Playground": {
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1": 0.0,
+      "support": 37
+    },
+    "Pond": {
+      "precision": 0.875,
+      "recall": 1.0,
+      "f1": 0.9333333333333333,
+      "support": 42
+    },
+    "Port": {
+      "precision": 0.6964285714285714,
+      "recall": 1.0,
+      "f1": 0.8210526315789474,
+      "support": 39
+    },
+    "RailwayStation": {
+      "precision": 0.85,
+      "recall": 0.6538461538461539,
+      "f1": 0.7391304347826086,
+      "support": 26
+    },
+    "Resort": {
+      "precision": 0.6333333333333333,
+      "recall": 0.6551724137931034,
+      "f1": 0.6440677966101694,
+      "support": 29
+    },
+    "River": {
+      "precision": 0.9411764705882353,
+      "recall": 0.7804878048780488,
+      "f1": 0.8533333333333334,
+      "support": 41
+    },
+    "School": {
+      "precision": 0.2857142857142857,
+      "recall": 0.13333333333333333,
+      "f1": 0.18181818181818182,
+      "support": 30
+    },
+    "SparseResidential": {
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1": 0.0,
+      "support": 30
+    },
+    "Square": {
+      "precision": 0.22857142857142856,
+      "recall": 0.24242424242424243,
+      "f1": 0.23529411764705882,
+      "support": 33
+    },
+    "Stadium": {
+      "precision": 0.37333333333333335,
+      "recall": 0.9655172413793104,
+      "f1": 0.5384615384615384,
+      "support": 29
+    },
+    "StorageTanks": {
+      "precision": 1.0,
+      "recall": 0.85,
+      "f1": 0.918918918918919,
+      "support": 40
+    },
+    "Viaduct": {
+      "precision": 0.9428571428571428,
+      "recall": 0.7857142857142857,
+      "f1": 0.8571428571428571,
+      "support": 42
+    },
+    "playfields": {
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1": 0.0,
+      "support": 66
+    }
+  }
+}

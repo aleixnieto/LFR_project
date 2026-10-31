@@ -1,0 +1,42 @@
+# Shared retrieval dataset. Paths resolve relative to this configuration file.
+image_dir: ../RSICD_images
+json_path: ../dataset_rsicd.json
+dataset_split: test
+# Included for compatibility with the shared dataset configuration loader.
+class_dir: ../txtclasses_rsicd
+
+# Accuracy cutoffs and example logging settings (all must be positive integers).
+ks: [1, 3, 5, 10]
+num_captions: 10
+log_every: 100
+
+models:
+  - label: A_baseline
+    model_name: ViT-B-32
+    pretrained_tag: laion2b_s34b_b79k
+    checkpoint_type: openclip
+    checkpoint_path: models/ViT-B-32-laion2b_s34b_b79k.bin
+
+  - label: B1_supervised_all_unique
+    model_name: ViT-B-32
+    pretrained_tag: laion2b_s34b_b79k
+    checkpoint_type: finetune
+    checkpoint_path: models/open_clip_finetune_all_unique_per_caption_ckp_best.pth
+
+  - label: B2_supervised_random_one
+    model_name: ViT-B-32
+    pretrained_tag: laion2b_s34b_b79k
+    checkpoint_type: finetune
+    checkpoint_path: models/open_clip_finetune_random_one_per_caption_ckp_best.pth
+
+  - label: C1_semiclip_paper_caption_strategy
+    model_name: ViT-B-32
+    pretrained_tag: laion2b_s34b_b79k
+    checkpoint_type: finetune
+    checkpoint_path: models/semiclip_paper_1gpu_seed42_stage2_final.pt
+
+  - label: C2_semiclip_all_unique
+    model_name: ViT-B-32
+    pretrained_tag: laion2b_s34b_b79k
+    checkpoint_type: finetune
+    checkpoint_path: models/semiclip_paper_1gpu_all_unique_seed42_stage2_final.pt

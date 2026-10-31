@@ -1,0 +1,29 @@
+{
+  "label": "C2_semiclip_all_unique",
+  "model_name": "ViT-B-32",
+  "pretrained_tag": "laion2b_s34b_b79k",
+  "checkpoint_path": "/home/casko/phd-code/LFR_project/report-results/models/semiclip_paper_1gpu_all_unique_seed42_stage2_final.pt",
+  "checkpoint_type": "finetune",
+  "dataset_split": "test",
+  "image_dir": "/home/casko/phd-code/LFR_project/RSICD_images",
+  "json_path": "/home/casko/phd-code/LFR_project/dataset_rsicd.json",
+  "device": "cuda",
+  "num_samples": 1093,
+  "num_captions": 3331,
+  "max_samples": null,
+  "retrieval_config": {
+    "ks": [
+      1,
+      3,
+      5,
+      10
+    ],
+    "num_captions": 10,
+    "log_every": 100
+  },
+  "matching_rule": "retrieved text is in the query image's caption list",
+  "accuracy_at_1": 0.11802378774016468,
+  "accuracy_at_3": 0.2817932296431839,
+  "accuracy_at_5": 0.37511436413540716,
+  "accuracy_at_10": 0.5315645013723697
+}

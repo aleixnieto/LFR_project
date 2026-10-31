@@ -6,6 +6,14 @@ All updated project code is located under `LFR_project/open-clip/`.
 
 All files under `LFR_project/former_project/` are kept unchanged.
 
+The results we have so far in the project are summarized [here](report-results/report-results.md).
+
+### TODOs
+Given the point from the project power-point the followig task would be needed for the report (mostly from experimental design slide):
+* Ablation study for the semi-clip setup (right now we rely on training parameters from the semi-clip paper)
+* How sensitive is the method to important hyperparameters? -> parameter analysis 
+* What are the failure cases? 
+
 ## UV venv - Initial Setup
 
 Here we use [UV](https://docs.astral.sh/uv/pip/environments/) for handeling the venv, but you can also use your alternative setup of choise.
