@@ -1,0 +1,35 @@
+# RSICD dataset
+image_dir: ../../../RSICD_images
+json_path: ../../../dataset_rsicd.json
+dataset_split: train
+validation_fraction: 0.1
+class_dir: ../../../txtclasses_rsicd # added to be able to reuse the same load_dataset_config function
+
+# Pretrained OpenCLIP
+model_name: ViT-B-32
+pretrained_tag: laion2b_s34b_b79k
+checkpoint_path: ../../../weights/open_clip/ViT-B-32-laion2b_s34b_b79k.bin
+
+# DINO architecture
+in_dim: 512
+out_dim: 8192
+hidden_dim: 2048
+bottleneck_dim: 256
+
+# DINO hyperparameters
+teacher_momentum: 0.996
+center_momentum: 0.9
+student_temperature: 0.1
+teacher_temperature: 0.04
+
+# Training
+epochs: 30
+batch_size: 32
+num_workers: 4
+encoder_lr: 0.00001
+head_lr: 0.0001
+weight_decay: 0.04
+seed: 42
+
+# Output
+output_dir: ../../../results/open_clip_dino_rsicd

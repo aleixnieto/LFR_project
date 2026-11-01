@@ -1,0 +1,8 @@
+# Paths resolve relative to this file. No caption or original train labels are used.
+model_name: ViT-B-32
+pretrained_tag: laion2b_s34b_b79k
+checkpoint_path: ../../../weights/open_clip/ViT-B-32-laion2b_s34b_b79k.bin
+image_dir: ../../../RSICD_images
+json_path: ../../../dataset_rsicd.json
+class_dir: ../../../txtclasses_rsicd
+dataset_split: val
