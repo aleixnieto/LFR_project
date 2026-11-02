@@ -34,7 +34,7 @@ def evaluate_linear_probe(
 ):
     # Extract frozen CLIP representations
     X, y = extract_features(
-        model.student,
+        model.student, # only use the student encoder for feature extraction, ignore the head and the teacher encoder
         dataloader,
         device
     )

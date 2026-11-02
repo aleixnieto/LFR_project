@@ -145,9 +145,61 @@ The original DINO implementation uses cosine schedules for several training hype
 We also use separate learning rates for the pretrained visual encoder and the newly initialized projection head.
 
 
-## Run it yourself
+## Run training yourself
 `python open_clip/dino/main_dino.py`
 
 ## Results
+Training loss, and linear probe evaluated on validation set:
+
 ![Training results](training_history.png).
+
+| Metric | Original CLIP | DINO (Epoch 15) |
+|---|---:|---:|
+| Correct predictions | 207 / 219 | **215 / 219** |
+| Accuracy | 94.52% | **98.17%** |
+
+
+## Final Test Set Evaluation
+
+After selecting the best DINO checkpoint (epoch 15) based on linear-probe validation accuracy, we evaluate the adapted visual encoder on the held-out RSICD test set.
+
+For both the original CLIP encoder and the DINO-adapted encoder:
+
+1. Freeze the visual encoder and extract 512-dimensional image embeddings.
+2. Train a logistic regression classifier on all 1,094 labeled validation images.
+3. Evaluate classification performance on the 1,093 held-out test images.
+
+Both models use the same training and test images, preprocessing, and linear-probe configuration.
+
+### Results
+
+| Metric | Original CLIP | DINO-adapted CLIP (Epoch 15) |
+|---|---:|---:|
+| Correct predictions | 1014 / 1093 | **1023 / 1093** |
+| Accuracy | 92.77% | **93.60%** |
+| Macro-F1 | 0.9209 | **0.9380** |
+
+### Discussion
+
+DINO domain adaptation improves test accuracy from **92.77% to 93.60%**, corresponding to nine additional correctly classified images out of 1,093 test samples.
+
+Macro-F1 also improves from **0.9209 to 0.9380**, suggesting improvements in classification performance across the different remote sensing classes.
+
+The improvement on the held-out test set (+0.82 percentage points) is smaller than the improvement observed during validation (+3.65 percentage points).
+
+This highlights the importance of evaluating domain-adapted representations on unseen data, rather than relying exclusively on validation accuracy.
+
+
+#### Reproducing the Evaluation
+
+From the repository root:
+
+```bash
+python open-clip/dino/evaluate_test.py \
+    --device cuda \
+    --checkpoint results/dino/best_model.pth
+```
+
+
+
 

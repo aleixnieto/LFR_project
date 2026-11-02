@@ -77,7 +77,6 @@ class DinoHead(torch.nn.Module):
         # Freeze the magnitude, as in original DINO
         self.last_layer.parametrizations.weight.original0.requires_grad_(False)
 
-
     def _init_weights(self, m):
         if isinstance(m, nn.Linear):
             trunc_normal_(m.weight, std=0.02)
@@ -366,7 +365,7 @@ def main():
     )
 
     # 1. Load pre-trained CLIP
-    clip_model, train_transform, val_transform = open_clip.create_model_and_transforms(
+    clip_model, _, val_transform = open_clip.create_model_and_transforms(
         model_config.model_name,
         pretrained=str(model_config.checkpoint_path),
         device=device,
@@ -380,7 +379,7 @@ def main():
         image_dir=dataset_config.image_dir,
         json_path=dataset_config.json_path,
         transform=augmentation,
-        split=dataset_config.dataset_split
+        split="train"
     )
 
     train_dt = DataLoader(

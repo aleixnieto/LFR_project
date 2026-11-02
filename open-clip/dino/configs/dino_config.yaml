@@ -1,7 +1,7 @@
 # RSICD dataset
 image_dir: ../../../RSICD_images
 json_path: ../../../dataset_rsicd.json
-dataset_split: train
+dataset_split: train # not used in the file, I just hard-coded "train"
 validation_fraction: 0.1
 class_dir: ../../../txtclasses_rsicd # added to be able to reuse the same load_dataset_config function
 
