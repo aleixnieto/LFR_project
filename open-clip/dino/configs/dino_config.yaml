@@ -9,18 +9,22 @@ class_dir: ../../../txtclasses_rsicd # added to be able to reuse the same load_d
 model_name: ViT-B-32
 pretrained_tag: laion2b_s34b_b79k
 checkpoint_path: ../../../weights/open_clip/ViT-B-32-laion2b_s34b_b79k.bin
+image_size: 224
 
 # DINO architecture
 in_dim: 512
-out_dim: 8192
-hidden_dim: 2048
-bottleneck_dim: 256
+out_dim: 65536            # from DINO paper
+hidden_dim: 2048          # from DINO paper, https://github.com/facebookresearch/dino/blob/main/vision_transformer.py
+bottleneck_dim: 256       # from DINO paper, https://github.com/facebookresearch/dino/blob/main/vision_transformer.py
 
-# DINO hyperparameters
-teacher_momentum: 0.996
-center_momentum: 0.9
-student_temperature: 0.1
-teacher_temperature: 0.04
+# DINO hyperparameters 
+teacher_momentum: 0.996   # in DINO paper, starts at 0.996 and increases to 1.0
+center_momentum: 0.9      # from DINO paper
+student_temperature: 0.1  # from DINO paper
+teacher_temperature: 0.04 # in DINO paper, starts at 0.04 and increases to 0.07
+global_crops_scale: [0.4, 1.0] # DINO paper
+local_crops_scale: [0.2, 0.4] # DINO paper https://github.com/facebookresearch/dino/blob/main/main_dino.py
+local_crops_number: 8
 
 # Training
 epochs: 30
@@ -28,8 +32,11 @@ batch_size: 32
 num_workers: 4
 encoder_lr: 0.00001
 head_lr: 0.0001
-weight_decay: 0.04
+weight_decay: 0.04        # in DINO paper, starts at 0.04 and goes to 0.4
 seed: 42
 
 # Output
 output_dir: ../../../results/open_clip_dino_rsicd
+
+
+# Values from DINO were found here: https://github.com/facebookresearch/dino/blob/main/main_dino.py
