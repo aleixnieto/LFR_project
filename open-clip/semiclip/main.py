@@ -365,7 +365,11 @@ def run_semiclip(
     )
     loaders = build_loaders(datasets, config, device)
     classifier = initialize_concept_classifier(
-        model, tokenizer, concepts.concepts, device
+        model,
+        tokenizer,
+        concepts.concepts,
+        device,
+        logit_scale_mode=config.classifier_logit_scale_mode,
     )
 
     if args.stage in {"1", "all"}:

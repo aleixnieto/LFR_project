@@ -145,7 +145,8 @@ def train_stage1_epoch(
         optimizer.step()
         with torch.no_grad():
             model.logit_scale.clamp_(0, 4.6052)
-            classifier.logit_scale.clamp_(0, 4.6052)
+            if classifier.logit_scale_mode != "learned_unclamped":
+                classifier.logit_scale.clamp_(0, 4.6052)
         scheduler.step()
         rows.append(
             {
