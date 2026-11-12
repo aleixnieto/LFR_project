@@ -1,0 +1,33 @@
+# Practical paper-aligned SemiCLIP: original local-batch geometry (B_L=B_U=32, S=9).
+# Uses the paper 4/4 top-k definition and a fixed classifier scale of one.
+model_name: ViT-B-32
+pretrained_tag: laion2b_s34b_b79k
+checkpoint_path: ../../../../weights/open_clip/ViT-B-32-laion2b_s34b_b79k.bin
+image_dir: ../../../../RSICD_images
+json_path: ../../../../dataset_rsicd.json
+labeled_split: val
+unlabeled_split: train
+supervised_train_fraction: 0.8
+seed: 2026
+caption_policy: random_one
+total_batch_size: 64
+num_workers: 4
+learning_rate: 0.00005
+weight_decay: 0.0005
+beta1: 0.9
+beta2: 0.98
+epsilon: 0.000001
+warmup_steps: 10
+stage1_epochs: 25
+stage2_epochs: 15
+concept_min_frequency: 5
+concept_max_frequency_ratio: 0.3
+concept_loss_top_k: 4
+surrogate_top_k: 4
+classifier_logit_scale_mode: fixed_one
+selection_ratio: 0.3
+clip_loss_weight: 1.0
+concept_loss_weight: 1.0
+intramodal_loss_weight: 1.0
+crossmodal_loss_weight: 1.0
+output_dir: ../../../../results/deviation-fixes-with-multi-seed/paper_aligned_b32_seed2026

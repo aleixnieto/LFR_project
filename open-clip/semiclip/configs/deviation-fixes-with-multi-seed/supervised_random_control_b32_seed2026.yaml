@@ -1,0 +1,25 @@
+# Stage-1 control matched to the SemiCLIP b32 runs (B_L=32).
+# No concept classifier, unlabelled data, pseudo-labels, prompts, or Stage 2.
+model_name: ViT-B-32
+pretrained_tag: laion2b_s34b_b79k
+checkpoint_path: ../../../../weights/open_clip/ViT-B-32-laion2b_s34b_b79k.bin
+image_dir: ../../../../RSICD_images
+json_path: ../../../../dataset_rsicd.json
+dataset_split: val
+seed: 2026
+supervised_train_fraction: 0.8
+caption_policy: random_one
+text_to_image_weighting: per_caption
+batch_size: 32
+validation_batch_size: 256
+num_workers: 4
+epochs: 25
+learning_rate: 0.00005
+optimizer: adamw
+weight_decay: 0.0005
+scheduler: cosine
+warmup_steps: 10
+warmup_fraction: 0.0
+drop_last: true
+shuffle_seed_offset: 1
+output_dir: ../../../../results/deviation-fixes-with-multi-seed/stage1_control_b32_seed2026
