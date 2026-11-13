@@ -116,7 +116,7 @@ def build_semiclip_datasets(
         config.json_path,
         config.labeled_split,
         config.supervised_train_fraction,
-        config.seed,
+        config.split_seed if config.split_seed is not None else config.seed,
     )
     labeled_train = RSICDSupervisedDataset(
         config.image_dir,

@@ -336,7 +336,7 @@ def run_semiclip(
         config.json_path,
         config.labeled_split,
         config.supervised_train_fraction,
-        config.seed,
+        config.split_seed if config.split_seed is not None else config.seed,
     )
     concept_path = config.output_dir / CONCEPT_ARTIFACT_NAME
     if args.stage in {"1", "all"}:

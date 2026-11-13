@@ -45,6 +45,7 @@ class SemiCLIPConfig:
     output_dir: Path
     caption_policy: str = "random_one"
     classifier_logit_scale_mode: str = "learned_clamped"
+    split_seed: int | None = None
 
     @property
     def labeled_batch_size(self) -> int:
@@ -204,4 +205,5 @@ def load_semiclip_config(config_path: str | Path) -> SemiCLIPConfig:
         output_dir=_resolve(config_path, values["output_dir"]),
         caption_policy=caption_policy,
         classifier_logit_scale_mode=classifier_logit_scale_mode,
+        split_seed=int(values.get("split_seed", numbers["seed"])),
     )
