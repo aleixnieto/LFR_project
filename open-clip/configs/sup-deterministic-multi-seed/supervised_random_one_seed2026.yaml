@@ -1,0 +1,21 @@
+# Supervised OpenCLIP random-one caption run; split fixed at seed 42.
+model_name: ViT-B-32
+pretrained_tag: laion2b_s34b_b79k
+checkpoint_path: ../../../weights/open_clip/ViT-B-32-laion2b_s34b_b79k.bin
+image_dir: ../../../RSICD_images
+json_path: ../../../dataset_rsicd.json
+dataset_split: val
+seed: 2026
+split_seed: 42
+supervised_train_fraction: 0.8
+caption_policy: random_one
+text_to_image_weighting: per_caption
+batch_size: 16
+num_workers: 4
+epochs: 8
+learning_rate: 0.00003
+optimizer: adamw
+weight_decay: 0.1
+warmup_fraction: 0.1
+drop_last: false
+output_dir: ../../../results/sup-deterministic-multi-seed/random_one_seed2026

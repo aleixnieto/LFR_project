@@ -1,0 +1,16 @@
+# SemiCLIP test-set comparison; use for final reporting only.
+image_dir: ../../../../RSICD_images
+json_path: ../../../../dataset_rsicd.json
+dataset_split: test
+class_dir: ../../../../txtclasses_rsicd
+models:
+  - label: semiCLIP1
+    model_name: ViT-B-32
+    pretrained_tag: laion2b_s34b_b79k
+    checkpoint_type: finetune
+    checkpoint_path: ../../../../results/semiclip-with-deviation-fixes-with-multi-seed/paper_aligned_b32_seed123/stage2_final.pt
+  - label: semiCLIPall
+    model_name: ViT-B-32
+    pretrained_tag: laion2b_s34b_b79k
+    checkpoint_type: finetune
+    checkpoint_path: ../../../../results/semiclip-with-deviation-fixes-with-multi-seed/paper_aligned_all_unique_b32_seed123/stage2_final.pt

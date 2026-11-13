@@ -1,0 +1,11 @@
+2026-11-13 13:23:49,740 INFO Device: cuda
+2026-11-13 13:23:49,740 INFO Selected models: semiCLIP1, semiCLIPall
+2026-11-13 13:23:49,740 INFO [semiCLIP1] Loading finetune checkpoint (ViT-B-32 / laion2b_s34b_b79k): /home/casko/phd-code/LFR_project/results/semiclip-with-deviation-fixes-with-multi-seed/paper_aligned_b32_seed42/stage2_final.pt
+2026-11-13 13:23:51,789 INFO [semiCLIP1] Test images: 1093; classes: 31; batch size: 32
+2026-11-13 13:23:51,789 INFO [semiCLIP1] Encoding class prompts
+2026-11-13 13:23:52,248 INFO [semiCLIP1] Running image evaluation
+2026-11-13 13:23:56,383 INFO [semiCLIPall] Loading finetune checkpoint (ViT-B-32 / laion2b_s34b_b79k): /home/casko/phd-code/LFR_project/results/semiclip-with-deviation-fixes-with-multi-seed/paper_aligned_all_unique_b32_seed42/stage2_final.pt
+2026-11-13 13:23:58,399 INFO [semiCLIPall] Test images: 1093; classes: 31; batch size: 32
+2026-11-13 13:23:58,401 INFO [semiCLIPall] Encoding class prompts
+2026-11-13 13:23:58,488 INFO [semiCLIPall] Running image evaluation
+2026-11-13 13:24:03,434 INFO Comparison complete. Summary: /home/casko/phd-code/LFR_project/evaluations/semiclip-with-deviation-fixes-with-multi-seed/test/seed42/summary.json; metrics plot: /home/casko/phd-code/LFR_project/evaluations/semiclip-with-deviation-fixes-with-multi-seed/test/seed42/model_comparison.png; confusion plot: /home/casko/phd-code/LFR_project/evaluations/semiclip-with-deviation-fixes-with-multi-seed/test/seed42/confusion_matrices_comparison.png

@@ -12,17 +12,36 @@ from open_clip.transformer import text_global_pool
 class ConceptClassifier(nn.Module):
     """Text-initialized trainable classifier used for semantic concepts."""
 
-    def __init__(self, concept_features: torch.Tensor, logit_scale: torch.Tensor):
+    def __init__(
+        self,
+        concept_features: torch.Tensor,
+        logit_scale: torch.Tensor,
+        logit_scale_mode: str = "learned_clamped",
+    ):
         super().__init__()
         if concept_features.ndim != 2 or concept_features.shape[0] == 0:
             raise ValueError("concept_features must be a nonempty [concepts, dim] tensor")
+        if logit_scale_mode not in {
+            "learned_clamped", "learned_unclamped", "fixed_one"
+        }:
+            raise ValueError(f"Unknown classifier logit-scale mode: {logit_scale_mode!r}")
         self.weight = nn.Parameter(functional.normalize(concept_features.detach(), dim=-1))
-        self.logit_scale = nn.Parameter(logit_scale.detach().reshape(()).clone())
+        self.logit_scale_mode = logit_scale_mode
+        initial_scale = logit_scale.detach().reshape(()).clone()
+        if logit_scale_mode == "fixed_one":
+            initial_scale.zero_()
+        self.logit_scale = nn.Parameter(
+            initial_scale, requires_grad=logit_scale_mode != "fixed_one"
+        )
 
     def forward(self, image_features: torch.Tensor) -> torch.Tensor:
         if image_features.ndim != 2 or image_features.shape[1] != self.weight.shape[1]:
             raise ValueError("image_features and concept weights must share an embedding dimension")
-        return self.logit_scale.exp() * functional.normalize(image_features, dim=-1) @ self.weight.T
+        return (
+            self.logit_scale.exp()
+            * functional.normalize(image_features, dim=-1)
+            @ self.weight.T
+        )
 
 
 @torch.no_grad()
@@ -31,13 +50,16 @@ def initialize_concept_classifier(
     tokenizer,
     concepts: Sequence[str],
     device: torch.device,
+    logit_scale_mode: str = "learned_clamped",
 ) -> ConceptClassifier:
     if not concepts:
         raise ValueError("At least one concept is required")
     prompts = [f"a photo includes {concept.replace('_', ' ')}." for concept in concepts]
     tokens = tokenizer(prompts).to(device)
     features = functional.normalize(model.encode_text(tokens), dim=-1)
-    return ConceptClassifier(features, model.logit_scale).to(device)
+    return ConceptClassifier(
+        features, model.logit_scale, logit_scale_mode=logit_scale_mode
+    ).to(device)
 
 
 def encode_text_embeddings(
@@ -145,5 +167,9 @@ class SurrogateCaptionEncoder(nn.Module):
         token_ids, context_positions = self.build_token_ids(concept_indices)
         embeddings = model.token_embedding(token_ids)
         context = self.context.reshape(self.top_k * 3, -1)
-        embeddings[:, context_positions] = context.unsqueeze(0)
+        positions = torch.tensor(
+            context_positions, dtype=torch.long, device=token_ids.device
+        )
+        context_batch = context.unsqueeze(0).expand(token_ids.shape[0], -1, -1)
+        embeddings = embeddings.index_copy(1, positions, context_batch)
         return encode_text_embeddings(model, token_ids, embeddings)

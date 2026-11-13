@@ -2,6 +2,7 @@
 
 import argparse
 import json
+import os
 import random
 import shutil
 import sys
@@ -94,11 +95,19 @@ def resolve_device(name: str) -> torch.device:
 
 
 def set_seed(seed: int) -> None:
+    # Set this before the first CUDA operation so cuBLAS uses deterministic
+    # workspace algorithms. DataLoaders below use explicit seeded generators.
+    os.environ.setdefault("CUBLAS_WORKSPACE_CONFIG", ":4096:8")
     random.seed(seed)
     np.random.seed(seed)
     torch.manual_seed(seed)
     if torch.cuda.is_available():
         torch.cuda.manual_seed_all(seed)
+        torch.backends.cudnn.benchmark = False
+        torch.backends.cudnn.deterministic = True
+        torch.backends.cuda.matmul.allow_tf32 = False
+        torch.backends.cudnn.allow_tf32 = False
+    torch.use_deterministic_algorithms(True)
 
 
 def _serialized_config(config: SemiCLIPConfig) -> dict[str, object]:
@@ -327,7 +336,7 @@ def run_semiclip(
         config.json_path,
         config.labeled_split,
         config.supervised_train_fraction,
-        config.seed,
+        config.split_seed if config.split_seed is not None else config.seed,
     )
     concept_path = config.output_dir / CONCEPT_ARTIFACT_NAME
     if args.stage in {"1", "all"}:
@@ -356,7 +365,11 @@ def run_semiclip(
     )
     loaders = build_loaders(datasets, config, device)
     classifier = initialize_concept_classifier(
-        model, tokenizer, concepts.concepts, device
+        model,
+        tokenizer,
+        concepts.concepts,
+        device,
+        logit_scale_mode=config.classifier_logit_scale_mode,
     )
 
     if args.stage in {"1", "all"}:

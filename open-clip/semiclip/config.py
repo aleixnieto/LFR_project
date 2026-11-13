@@ -7,6 +7,9 @@ import yaml
 
 
 CAPTION_POLICIES = frozenset({"all_unique", "random_one"})
+CLASSIFIER_LOGIT_SCALE_MODES = frozenset(
+    {"learned_clamped", "learned_unclamped", "fixed_one"}
+)
 
 
 @dataclass(frozen=True)
@@ -41,6 +44,8 @@ class SemiCLIPConfig:
     crossmodal_loss_weight: float
     output_dir: Path
     caption_policy: str = "random_one"
+    classifier_logit_scale_mode: str = "learned_clamped"
+    split_seed: int | None = None
 
     @property
     def labeled_batch_size(self) -> int:
@@ -123,6 +128,15 @@ def load_semiclip_config(config_path: str | Path) -> SemiCLIPConfig:
         raise ValueError(
             f"caption_policy must be one of: {choices}; got {caption_policy!r}"
         )
+    classifier_logit_scale_mode = values.get(
+        "classifier_logit_scale_mode", "learned_clamped"
+    )
+    if classifier_logit_scale_mode not in CLASSIFIER_LOGIT_SCALE_MODES:
+        choices = ", ".join(sorted(CLASSIFIER_LOGIT_SCALE_MODES))
+        raise ValueError(
+            "classifier_logit_scale_mode must be one of: "
+            f"{choices}; got {classifier_logit_scale_mode!r}"
+        )
     if not 0 < numbers["supervised_train_fraction"] < 1:
         raise ValueError("supervised_train_fraction must be strictly between zero and one")
     if numbers["total_batch_size"] < 2 or numbers["total_batch_size"] % 2:
@@ -190,4 +204,6 @@ def load_semiclip_config(config_path: str | Path) -> SemiCLIPConfig:
         crossmodal_loss_weight=numbers["crossmodal_loss_weight"],
         output_dir=_resolve(config_path, values["output_dir"]),
         caption_policy=caption_policy,
+        classifier_logit_scale_mode=classifier_logit_scale_mode,
+        split_seed=int(values.get("split_seed", numbers["seed"])),
     )

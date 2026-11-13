@@ -223,6 +223,8 @@ def train_stage2_epoch(
     model.train()
     classifier.train()
     prompt.train()
+    if device.type == "cuda":
+        torch.cuda.reset_peak_memory_stats(device)
     rows: list[dict[str, float]] = []
     labeled_filenames: list[str] = []
     labeled_captions = 0
@@ -288,7 +290,8 @@ def train_stage2_epoch(
         optimizer.step()
         with torch.no_grad():
             model.logit_scale.clamp_(0, 4.6052)
-            classifier.logit_scale.clamp_(0, 4.6052)
+            if classifier.logit_scale_mode != "learned_unclamped":
+                classifier.logit_scale.clamp_(0, 4.6052)
         scheduler.step()
         top_probabilities = functional.softmax(fixed_logits, dim=1).gather(
             1, details["pseudo_indices"]
@@ -330,6 +333,15 @@ def train_stage2_epoch(
             "concept_logit_scale": float(classifier.logit_scale.detach().exp()),
         }
     )
+    if device.type == "cuda":
+        metrics.update(
+            {
+                "peak_cuda_allocated_mib": torch.cuda.max_memory_allocated(device)
+                / (1024 ** 2),
+                "peak_cuda_reserved_mib": torch.cuda.max_memory_reserved(device)
+                / (1024 ** 2),
+            }
+        )
     return metrics
 
 
