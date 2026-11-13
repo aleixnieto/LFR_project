@@ -1,0 +1,79 @@
+{
+  "seeds": [
+    42,
+    123,
+    2026
+  ],
+  "results": [
+    {
+      "variant": "sup1",
+      "metric": "accuracy",
+      "seeds": 3,
+      "mean": 0.8858447488584474,
+      "sample_standard_deviation": 0.016463704454173497
+    },
+    {
+      "variant": "sup1",
+      "metric": "weighted_precision",
+      "seeds": 3,
+      "mean": 0.896402726311402,
+      "sample_standard_deviation": 0.027638814889162342
+    },
+    {
+      "variant": "sup1",
+      "metric": "weighted_recall",
+      "seeds": 3,
+      "mean": 0.8858447488584474,
+      "sample_standard_deviation": 0.016463704454173497
+    },
+    {
+      "variant": "sup1",
+      "metric": "weighted_f1",
+      "seeds": 3,
+      "mean": 0.8735570063977404,
+      "sample_standard_deviation": 0.01150081967254767
+    },
+    {
+      "variant": "sup1",
+      "metric": "macro_f1",
+      "seeds": 3,
+      "mean": 0.8736360934939523,
+      "sample_standard_deviation": 0.014540565002744154
+    },
+    {
+      "variant": "supAll",
+      "metric": "accuracy",
+      "seeds": 3,
+      "mean": 0.9208523592085236,
+      "sample_standard_deviation": 0.0026363025990393547
+    },
+    {
+      "variant": "supAll",
+      "metric": "weighted_precision",
+      "seeds": 3,
+      "mean": 0.9361197655718204,
+      "sample_standard_deviation": 0.016879685779907526
+    },
+    {
+      "variant": "supAll",
+      "metric": "weighted_recall",
+      "seeds": 3,
+      "mean": 0.9208523592085236,
+      "sample_standard_deviation": 0.0026363025990393547
+    },
+    {
+      "variant": "supAll",
+      "metric": "weighted_f1",
+      "seeds": 3,
+      "mean": 0.9124245788737559,
+      "sample_standard_deviation": 0.0021859235803821336
+    },
+    {
+      "variant": "supAll",
+      "metric": "macro_f1",
+      "seeds": 3,
+      "mean": 0.9174221536915905,
+      "sample_standard_deviation": 0.00356596091686567
+    }
+  ]
+}
