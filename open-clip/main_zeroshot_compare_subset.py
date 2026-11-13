@@ -116,12 +116,14 @@ def main() -> None:
                     "weighted_precision",
                     "weighted_recall",
                     "weighted_f1",
+                    "macro_f1",
                 )
             }
         )
         print(
             f"{selection.label}: accuracy={metrics['accuracy']:.4f} "
-            f"weighted_f1={metrics['weighted_f1']:.4f}"
+            f"weighted_f1={metrics['weighted_f1']:.4f} "
+            f"macro_f1={metrics['macro_f1']:.4f}"
         )
         del model
         if device.type == "cuda":

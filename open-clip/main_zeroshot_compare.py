@@ -163,6 +163,9 @@ def calculate_comparison_metrics(
     weighted_precision, weighted_recall, weighted_f1, _ = precision_recall_fscore_support(
         ground_truths, predictions, average="weighted", zero_division=0
     )
+    _, _, macro_f1, _ = precision_recall_fscore_support(
+        ground_truths, predictions, average="macro", zero_division=0
+    )
     matrix = confusion_matrix(ground_truths, predictions, labels=class_names)
     accuracy = sum(expected == predicted for expected, predicted in zip(ground_truths, predictions))
     return (
@@ -171,6 +174,7 @@ def calculate_comparison_metrics(
             "weighted_precision": float(weighted_precision),
             "weighted_recall": float(weighted_recall),
             "weighted_f1": float(weighted_f1),
+            "macro_f1": float(macro_f1),
             "per_class": {
                 name: {
                     "precision": float(class_precision),
@@ -200,8 +204,14 @@ def save_confusion_matrix(matrix: list[list[int]], class_names: list[str], outpu
 
 
 def save_model_comparison_plot(summaries: list[dict[str, object]], output_path: Path) -> None:
-    metric_keys = ("accuracy", "weighted_precision", "weighted_recall", "weighted_f1")
-    metric_labels = ("Accuracy", "Weighted precision", "Weighted recall", "Weighted F1")
+    metric_keys = ("accuracy", "weighted_precision", "weighted_recall", "weighted_f1", "macro_f1")
+    metric_labels = (
+        "Accuracy",
+        "Weighted precision",
+        "Weighted recall",
+        "Weighted F1",
+        "Macro F1",
+    )
     positions = np.arange(len(summaries))
     width = 0.8 / len(metric_keys)
 
@@ -386,8 +396,12 @@ def main() -> None:
         write_results(model_dir, metrics, predictions)
         save_confusion_matrix(matrix, dataset.class_names, model_dir / "confusion_matrix.png", selection.label)
         confusion_matrices.append((selection.label, matrix))
-        summaries.append({key: metrics[key] for key in ("label", "checkpoint_path", "checkpoint_type", "num_samples", "accuracy", "weighted_precision", "weighted_recall", "weighted_f1")})
-        print(f"  accuracy={metrics['accuracy']:.4f} weighted_f1={metrics['weighted_f1']:.4f}")
+        summaries.append({key: metrics[key] for key in ("label", "checkpoint_path", "checkpoint_type", "num_samples", "accuracy", "weighted_precision", "weighted_recall", "weighted_f1", "macro_f1")})
+        print(
+            f"  accuracy={metrics['accuracy']:.4f} "
+            f"weighted_f1={metrics['weighted_f1']:.4f} "
+            f"macro_f1={metrics['macro_f1']:.4f}"
+        )
         del model
         if device.type == "cuda":
             torch.cuda.empty_cache()

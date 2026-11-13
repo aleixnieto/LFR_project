@@ -169,11 +169,18 @@ def calculate_metrics(ground_truths: list[str], predictions: list[str]) -> dict[
         average="weighted",
         zero_division=0,
     )
+    _, _, macro_f1_score, _ = precision_recall_fscore_support(
+        ground_truths,
+        predictions,
+        average="macro",
+        zero_division=0,
+    )
     return {
         "accuracy": float(accuracy_score(ground_truths, predictions)),
         "weighted_precision": float(precision),
         "weighted_recall": float(recall),
         "weighted_f1": float(f1_score),
+        "macro_f1": float(macro_f1_score),
     }
 
 

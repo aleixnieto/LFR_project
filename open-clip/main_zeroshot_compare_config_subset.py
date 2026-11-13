@@ -93,9 +93,13 @@ def main() -> None:
         write_results(output_dir / selection.label, metrics, predictions)
         summaries.append({key: metrics[key] for key in (
             "label", "checkpoint_path", "checkpoint_type", "num_samples", "accuracy",
-            "weighted_precision", "weighted_recall", "weighted_f1",
+            "weighted_precision", "weighted_recall", "weighted_f1", "macro_f1",
         )})
-        print(f"{selection.label}: accuracy={metrics['accuracy']:.4f} weighted_f1={metrics['weighted_f1']:.4f}")
+        print(
+            f"{selection.label}: accuracy={metrics['accuracy']:.4f} "
+            f"weighted_f1={metrics['weighted_f1']:.4f} "
+            f"macro_f1={metrics['macro_f1']:.4f}"
+        )
         del model
         if device.type == "cuda":
             torch.cuda.empty_cache()
