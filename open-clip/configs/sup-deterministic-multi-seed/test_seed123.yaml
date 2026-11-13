@@ -1,0 +1,16 @@
+# OpenCLIP supervised test-set comparison; use for final reporting only.
+image_dir: ../../../RSICD_images
+json_path: ../../../dataset_rsicd.json
+dataset_split: test
+class_dir: ../../../txtclasses_rsicd
+models:
+  - label: sup1
+    model_name: ViT-B-32
+    pretrained_tag: laion2b_s34b_b79k
+    checkpoint_type: finetune
+    checkpoint_path: ../../../results/sup-deterministic-multi-seed/random_one_seed123/ckp_best.pth
+  - label: supAll
+    model_name: ViT-B-32
+    pretrained_tag: laion2b_s34b_b79k
+    checkpoint_type: finetune
+    checkpoint_path: ../../../results/sup-deterministic-multi-seed/all_unique_seed123/ckp_best.pth
