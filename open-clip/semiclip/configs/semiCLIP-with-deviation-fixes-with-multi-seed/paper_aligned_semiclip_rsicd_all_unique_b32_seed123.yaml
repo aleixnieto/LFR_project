@@ -1,5 +1,5 @@
-# Released-code-oriented SemiCLIP: original local-batch geometry (B_L=B_U=32, S=9).
-# Uses the released-code 3/4 top-k split and an unclamped learned classifier scale.
+# Practical paper-aligned SemiCLIP: all unique captions, B_L=B_U=32, S=9.
+# Uses the paper 4/4 top-k definition and a fixed classifier scale of one.
 model_name: ViT-B-32
 pretrained_tag: laion2b_s34b_b79k
 checkpoint_path: ../../../../weights/open_clip/ViT-B-32-laion2b_s34b_b79k.bin
@@ -8,8 +8,9 @@ json_path: ../../../../dataset_rsicd.json
 labeled_split: val
 unlabeled_split: train
 supervised_train_fraction: 0.8
-seed: 123
-caption_policy: random_one
+seed: 123  # For training settings
+split_seed: 42 # For dataset construction
+caption_policy: all_unique
 total_batch_size: 64
 num_workers: 4
 learning_rate: 0.00005
@@ -22,12 +23,12 @@ stage1_epochs: 25
 stage2_epochs: 15
 concept_min_frequency: 5
 concept_max_frequency_ratio: 0.3
-concept_loss_top_k: 3
+concept_loss_top_k: 4
 surrogate_top_k: 4
-classifier_logit_scale_mode: learned_unclamped
+classifier_logit_scale_mode: fixed_one
 selection_ratio: 0.3
 clip_loss_weight: 1.0
 concept_loss_weight: 1.0
 intramodal_loss_weight: 1.0
 crossmodal_loss_weight: 1.0
-output_dir: ../../../../results/deviation-fixes-with-multi-seed/authors_code_b32_seed123
+output_dir: ../../../../results/semiclip-with-deviation-fixes-with-multi-seed/paper_aligned_all_unique_b32_seed123
