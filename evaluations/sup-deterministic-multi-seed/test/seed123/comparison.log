@@ -1,0 +1,11 @@
+2026-11-13 13:22:50,701 INFO Device: cuda
+2026-11-13 13:22:50,702 INFO Selected models: sup1, supAll
+2026-11-13 13:22:50,702 INFO [sup1] Loading finetune checkpoint (ViT-B-32 / laion2b_s34b_b79k): /home/casko/phd-code/LFR_project/results/sup-deterministic-multi-seed/random_one_seed123/ckp_best.pth
+2026-11-13 13:23:00,810 INFO [sup1] Test images: 1093; classes: 31; batch size: 32
+2026-11-13 13:23:00,810 INFO [sup1] Encoding class prompts
+2026-11-13 13:23:01,318 INFO [sup1] Running image evaluation
+2026-11-13 13:23:05,579 INFO [supAll] Loading finetune checkpoint (ViT-B-32 / laion2b_s34b_b79k): /home/casko/phd-code/LFR_project/results/sup-deterministic-multi-seed/all_unique_seed123/ckp_best.pth
+2026-11-13 13:23:10,249 INFO [supAll] Test images: 1093; classes: 31; batch size: 32
+2026-11-13 13:23:10,251 INFO [supAll] Encoding class prompts
+2026-11-13 13:23:10,337 INFO [supAll] Running image evaluation
+2026-11-13 13:23:15,461 INFO Comparison complete. Summary: /home/casko/phd-code/LFR_project/evaluations/sup-deterministic-multi-seed/test/seed123/summary.json; metrics plot: /home/casko/phd-code/LFR_project/evaluations/sup-deterministic-multi-seed/test/seed123/model_comparison.png; confusion plot: /home/casko/phd-code/LFR_project/evaluations/sup-deterministic-multi-seed/test/seed123/confusion_matrices_comparison.png

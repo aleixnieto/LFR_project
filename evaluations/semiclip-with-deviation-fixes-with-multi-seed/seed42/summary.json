@@ -1,0 +1,26 @@
+{
+  "models": [
+    {
+      "label": "semiCLIP1",
+      "checkpoint_path": "/home/casko/phd-code/LFR_project/results/semiclip-with-deviation-fixes-with-multi-seed/paper_aligned_b32_seed42/stage2_final.pt",
+      "checkpoint_type": "finetune",
+      "num_samples": 219,
+      "accuracy": 0.9178082191780822,
+      "weighted_precision": 0.9211368413423208,
+      "weighted_recall": 0.9178082191780822,
+      "weighted_f1": 0.9153306516523971,
+      "macro_f1": 0.9176219447224748
+    },
+    {
+      "label": "semiCLIPall",
+      "checkpoint_path": "/home/casko/phd-code/LFR_project/results/semiclip-with-deviation-fixes-with-multi-seed/paper_aligned_all_unique_b32_seed42/stage2_final.pt",
+      "checkpoint_type": "finetune",
+      "num_samples": 219,
+      "accuracy": 0.9041095890410958,
+      "weighted_precision": 0.9139773975390413,
+      "weighted_recall": 0.9041095890410958,
+      "weighted_f1": 0.8985192301089923,
+      "macro_f1": 0.8973573908253825
+    }
+  ]
+}

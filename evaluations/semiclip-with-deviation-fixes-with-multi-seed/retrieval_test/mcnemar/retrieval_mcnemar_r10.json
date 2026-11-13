@@ -1,0 +1,90 @@
+{
+  "test": "exact two-sided McNemar",
+  "metric": "R@10",
+  "results": [
+    {
+      "seed": 42,
+      "supervised_variant": "sup1",
+      "semiclip_variant": "semiCLIP1",
+      "num_images": 1093,
+      "sup_r10": 0.4537968892955169,
+      "semiclip_r10": 0.46660567246111617,
+      "semiclip_better": 184,
+      "sup_better": 170,
+      "discordant_pairs": 354,
+      "both_hit": 326,
+      "both_miss": 413,
+      "p_value_exact_two_sided_mcnemar": 0.48965570332711106
+    },
+    {
+      "seed": 123,
+      "supervised_variant": "sup1",
+      "semiclip_variant": "semiCLIP1",
+      "num_images": 1093,
+      "sup_r10": 0.48124428179322964,
+      "semiclip_r10": 0.4556267154620311,
+      "semiclip_better": 157,
+      "sup_better": 185,
+      "discordant_pairs": 342,
+      "both_hit": 341,
+      "both_miss": 410,
+      "p_value_exact_two_sided_mcnemar": 0.14418153588584243
+    },
+    {
+      "seed": 2026,
+      "supervised_variant": "sup1",
+      "semiclip_variant": "semiCLIP1",
+      "num_images": 1093,
+      "sup_r10": 0.47483989021043,
+      "semiclip_r10": 0.47209515096065874,
+      "semiclip_better": 168,
+      "sup_better": 171,
+      "discordant_pairs": 339,
+      "both_hit": 348,
+      "both_miss": 406,
+      "p_value_exact_two_sided_mcnemar": 0.9135208793497887
+    },
+    {
+      "seed": 42,
+      "supervised_variant": "supAll",
+      "semiclip_variant": "semiCLIPall",
+      "num_images": 1093,
+      "sup_r10": 0.5242451967063129,
+      "semiclip_r10": 0.4839890210430009,
+      "semiclip_better": 152,
+      "sup_better": 196,
+      "discordant_pairs": 348,
+      "both_hit": 377,
+      "both_miss": 368,
+      "p_value_exact_two_sided_mcnemar": 0.02103060266453362
+    },
+    {
+      "seed": 123,
+      "supervised_variant": "supAll",
+      "semiclip_variant": "semiCLIPall",
+      "num_images": 1093,
+      "sup_r10": 0.5187557182067704,
+      "semiclip_r10": 0.4967978042086002,
+      "semiclip_better": 138,
+      "sup_better": 162,
+      "discordant_pairs": 300,
+      "both_hit": 405,
+      "both_miss": 388,
+      "p_value_exact_two_sided_mcnemar": 0.18411657239198576
+    },
+    {
+      "seed": 2026,
+      "supervised_variant": "supAll",
+      "semiclip_variant": "semiCLIPall",
+      "num_images": 1093,
+      "sup_r10": 0.4931381518755718,
+      "semiclip_r10": 0.494967978042086,
+      "semiclip_better": 162,
+      "sup_better": 160,
+      "discordant_pairs": 322,
+      "both_hit": 379,
+      "both_miss": 392,
+      "p_value_exact_two_sided_mcnemar": 0.9555701403830337
+    }
+  ]
+}

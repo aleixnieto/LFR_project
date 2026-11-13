@@ -1,0 +1,26 @@
+{
+  "models": [
+    {
+      "label": "sup1",
+      "checkpoint_path": "/home/casko/phd-code/LFR_project/results/sup-deterministic-multi-seed/random_one_seed2026/ckp_best.pth",
+      "checkpoint_type": "finetune",
+      "num_samples": 1093,
+      "accuracy": 0.8252516010978957,
+      "weighted_precision": 0.8522552954409313,
+      "weighted_recall": 0.8252516010978957,
+      "weighted_f1": 0.8078763724255703,
+      "macro_f1": 0.8225799325618469
+    },
+    {
+      "label": "supAll",
+      "checkpoint_path": "/home/casko/phd-code/LFR_project/results/sup-deterministic-multi-seed/all_unique_seed2026/ckp_best.pth",
+      "checkpoint_type": "finetune",
+      "num_samples": 1093,
+      "accuracy": 0.8453796889295517,
+      "weighted_precision": 0.8709958699533135,
+      "weighted_recall": 0.8453796889295517,
+      "weighted_f1": 0.8360940708131743,
+      "macro_f1": 0.8430301444584196
+    }
+  ]
+}

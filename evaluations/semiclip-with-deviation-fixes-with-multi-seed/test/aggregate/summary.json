@@ -1,0 +1,79 @@
+{
+  "seeds": [
+    42,
+    123,
+    2026
+  ],
+  "results": [
+    {
+      "variant": "semiCLIP1",
+      "metric": "accuracy",
+      "seeds": 3,
+      "mean": 0.8334858188472095,
+      "sample_standard_deviation": 0.00484126497907516
+    },
+    {
+      "variant": "semiCLIP1",
+      "metric": "weighted_precision",
+      "seeds": 3,
+      "mean": 0.8460131004685671,
+      "sample_standard_deviation": 0.005908188930098662
+    },
+    {
+      "variant": "semiCLIP1",
+      "metric": "weighted_recall",
+      "seeds": 3,
+      "mean": 0.8334858188472095,
+      "sample_standard_deviation": 0.00484126497907516
+    },
+    {
+      "variant": "semiCLIP1",
+      "metric": "weighted_f1",
+      "seeds": 3,
+      "mean": 0.8257404118823317,
+      "sample_standard_deviation": 0.005595523234830383
+    },
+    {
+      "variant": "semiCLIP1",
+      "metric": "macro_f1",
+      "seeds": 3,
+      "mean": 0.8396191845587319,
+      "sample_standard_deviation": 0.005933364141136427
+    },
+    {
+      "variant": "semiCLIPall",
+      "metric": "accuracy",
+      "seeds": 3,
+      "mean": 0.8295211954864288,
+      "sample_standard_deviation": 0.0073951544086502995
+    },
+    {
+      "variant": "semiCLIPall",
+      "metric": "weighted_precision",
+      "seeds": 3,
+      "mean": 0.844818479229148,
+      "sample_standard_deviation": 0.001861159982126201
+    },
+    {
+      "variant": "semiCLIPall",
+      "metric": "weighted_recall",
+      "seeds": 3,
+      "mean": 0.8295211954864288,
+      "sample_standard_deviation": 0.0073951544086502995
+    },
+    {
+      "variant": "semiCLIPall",
+      "metric": "weighted_f1",
+      "seeds": 3,
+      "mean": 0.8149875767213846,
+      "sample_standard_deviation": 0.006223529917208209
+    },
+    {
+      "variant": "semiCLIPall",
+      "metric": "macro_f1",
+      "seeds": 3,
+      "mean": 0.8305262258460897,
+      "sample_standard_deviation": 0.007520151764855486
+    }
+  ]
+}
