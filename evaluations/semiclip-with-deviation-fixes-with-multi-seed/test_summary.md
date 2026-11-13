@@ -24,6 +24,38 @@ The standard deviation is the sample SD (`ddof=1`).
 Per-seed predictions and metrics are in each family's `test/seed42`,
 `test/seed123`, and `test/seed2026` folders.
 
+### Paired McNemar tests for zero-shot classification
+
+For each seed, McNemar's exact two-sided test compares per-image
+classification correctness between SemiCLIP and the supervised OpenCLIP model
+trained with the same caption policy. `SemiCLIP-only correct` and `Sup-only
+correct` count the discordant image pairs in each direction. P-values are
+unadjusted and reported per seed; results are not pooled across seeds because
+they reuse the same test images.
+
+For zero-shot classification on the shared 1,093-image RSICD test split, exact
+two-sided McNemar tests for `semiCLIP1` versus `sup1` are:
+
+| Seed | `sup1` accuracy | `semiCLIP1` accuracy | SemiCLIP-only correct | Sup-only correct | p-value |
+| ---: | ---: | ---: | ---: | ---: | ---: |
+| 42 | 82.25% | 82.98% | 80 | 72 | 0.570333 |
+| 123 | 82.34% | 83.17% | 76 | 67 | 0.503639 |
+| 2026 | 82.53% | 83.90% | 77 | 62 | 0.234932 |
+
+These are unadjusted per-seed p-values. None meets the 0.05 threshold.
+
+For zero-shot classification on the shared 1,093-image RSICD test split, exact
+two-sided McNemar tests for `semiCLIPall` versus `supAll` are:
+
+| Seed | `supAll` accuracy | `semiCLIPall` accuracy | SemiCLIP-only correct | Sup-only correct | p-value |
+| ---: | ---: | ---: | ---: | ---: | ---: |
+| 42 | 86.28% | 82.16% | 33 | 78 | 0.0000233 |
+| 123 | 84.26% | 83.62% | 43 | 50 | 0.534060 |
+| 2026 | 84.54% | 83.07% | 61 | 77 | 0.201473 |
+
+These are unadjusted per-seed p-values. Only seed 42 meets the 0.05 threshold,
+in favor of `supAll`.
+
 ## Image-to-text retrieval
 
 Retrieval checks whether a query image's captions appear among the top-(k)
@@ -51,14 +83,28 @@ discordant image pairs in each direction. P-values are unadjusted and are
 reported per seed; results are not pooled across seeds because they reuse the
 same test images.
 
-| Comparison | Seed | Sup R@10 | SemiCLIP R@10 | SemiCLIP better | Sup better | Exact p (McNemar) |
-| --- | ---: | ---: | ---: | ---: | ---: | ---: |
-| `semiCLIP1` vs `sup1` | 42 | 45.38% | 46.66% | 184 | 170 | 0.489656 |
-| `semiCLIP1` vs `sup1` | 123 | 48.12% | 45.56% | 157 | 185 | 0.144182 |
-| `semiCLIP1` vs `sup1` | 2026 | 47.48% | 47.21% | 168 | 171 | 0.913521 |
-| `semiCLIPall` vs `supAll` | 42 | 52.42% | 48.40% | 152 | 196 | 0.021031 |
-| `semiCLIPall` vs `supAll` | 123 | 51.88% | 49.68% | 138 | 162 | 0.184117 |
-| `semiCLIPall` vs `supAll` | 2026 | 49.31% | 49.50% | 162 | 160 | 0.955570 |
+For R@10 retrieval on the shared 1,093-image RSICD test split, exact
+two-sided McNemar tests for `semiCLIP1` versus `sup1` are:
+
+| Seed | `sup1` R@10 | `semiCLIP1` R@10 | SemiCLIP-only correct | Sup-only correct | p-value |
+| ---: | ---: | ---: | ---: | ---: | ---: |
+| 42 | 45.38% | 46.66% | 184 | 170 | 0.489656 |
+| 123 | 48.12% | 45.56% | 157 | 185 | 0.144182 |
+| 2026 | 47.48% | 47.21% | 168 | 171 | 0.913521 |
+
+These are unadjusted per-seed p-values. None meets the 0.05 threshold.
+
+For R@10 retrieval on the shared 1,093-image RSICD test split, exact
+two-sided McNemar tests for `semiCLIPall` versus `supAll` are:
+
+| Seed | `supAll` R@10 | `semiCLIPall` R@10 | SemiCLIP-only correct | Sup-only correct | p-value |
+| ---: | ---: | ---: | ---: | ---: | ---: |
+| 42 | 52.42% | 48.40% | 152 | 196 | 0.021031 |
+| 123 | 51.88% | 49.68% | 138 | 162 | 0.184117 |
+| 2026 | 49.31% | 49.50% | 162 | 160 | 0.955570 |
+
+These are unadjusted per-seed p-values. Only seed 42 meets the 0.05 threshold,
+in favor of `supAll`.
 
 The [per-image paired-test report](retrieval_test/mcnemar/retrieval_mcnemar_r10.md)
 contains discordant counts and a machine-readable JSON result.
