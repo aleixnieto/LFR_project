@@ -1,0 +1,64 @@
+{
+  "models": [
+    {
+      "label": "ratio_0.1",
+      "checkpoint_path": "/proj/cvl/users/x_maeca/LFR_project/open-clip/semiclip/results/semiclip_ablation/selection_ratio/ratio_0.1/stage2_final.pt",
+      "checkpoint_type": "finetune",
+      "num_samples": 219,
+      "accuracy": 0.908675799086758,
+      "weighted_precision": 0.9123849387548018,
+      "weighted_recall": 0.908675799086758,
+      "weighted_f1": 0.9065602675594617
+    },
+    {
+      "label": "ratio_0.3",
+      "checkpoint_path": "/proj/cvl/users/x_maeca/LFR_project/open-clip/semiclip/results/semiclip_ablation/baseline/stage2_final.pt",
+      "checkpoint_type": "finetune",
+      "num_samples": 219,
+      "accuracy": 0.8995433789954338,
+      "weighted_precision": 0.9045006997061792,
+      "weighted_recall": 0.8995433789954338,
+      "weighted_f1": 0.8971758513323043
+    },
+    {
+      "label": "ratio_0.5",
+      "checkpoint_path": "/proj/cvl/users/x_maeca/LFR_project/open-clip/semiclip/results/semiclip_ablation/selection_ratio/ratio_0.5/stage2_final.pt",
+      "checkpoint_type": "finetune",
+      "num_samples": 219,
+      "accuracy": 0.9178082191780822,
+      "weighted_precision": 0.920486058842223,
+      "weighted_recall": 0.9178082191780822,
+      "weighted_f1": 0.9138954182488499
+    },
+    {
+      "label": "ratio_0.7",
+      "checkpoint_path": "/proj/cvl/users/x_maeca/LFR_project/open-clip/semiclip/results/semiclip_ablation/selection_ratio/ratio_0.7/stage2_final.pt",
+      "checkpoint_type": "finetune",
+      "num_samples": 219,
+      "accuracy": 0.9041095890410958,
+      "weighted_precision": 0.9073038453175438,
+      "weighted_recall": 0.9041095890410958,
+      "weighted_f1": 0.9017271138162427
+    },
+    {
+      "label": "ratio_0.9",
+      "checkpoint_path": "/proj/cvl/users/x_maeca/LFR_project/open-clip/semiclip/results/semiclip_ablation/selection_ratio/ratio_0.9/stage2_final.pt",
+      "checkpoint_type": "finetune",
+      "num_samples": 219,
+      "accuracy": 0.9178082191780822,
+      "weighted_precision": 0.9247372617235631,
+      "weighted_recall": 0.9178082191780822,
+      "weighted_f1": 0.9170081547692799
+    },
+    {
+      "label": "ratio_1.0",
+      "checkpoint_path": "/proj/cvl/users/x_maeca/LFR_project/open-clip/semiclip/results/semiclip_ablation/selection_ratio/ratio_1.0/stage2_final.pt",
+      "checkpoint_type": "finetune",
+      "num_samples": 219,
+      "accuracy": 0.91324200913242,
+      "weighted_precision": 0.9199989128071321,
+      "weighted_recall": 0.91324200913242,
+      "weighted_f1": 0.9116097555723733
+    }
+  ]
+}

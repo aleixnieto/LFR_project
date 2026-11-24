@@ -1,0 +1,1316 @@
+[
+  {
+    "filename": "meadow_88.jpg",
+    "ground_truth": "Meadow",
+    "prediction": "Meadow",
+    "similarity": 0.25780919194221497
+  },
+  {
+    "filename": "bridge_58.jpg",
+    "ground_truth": "Bridge",
+    "prediction": "Bridge",
+    "similarity": 0.27950718998908997
+  },
+  {
+    "filename": "pond_66.jpg",
+    "ground_truth": "Pond",
+    "prediction": "Pond",
+    "similarity": 0.2658784091472626
+  },
+  {
+    "filename": "baseballfield_8.jpg",
+    "ground_truth": "BaseballField",
+    "prediction": "BaseballField",
+    "similarity": 0.25336316227912903
+  },
+  {
+    "filename": "river_73.jpg",
+    "ground_truth": "River",
+    "prediction": "River",
+    "similarity": 0.26024290919303894
+  },
+  {
+    "filename": "sparseresidential_95.jpg",
+    "ground_truth": "SparseResidential",
+    "prediction": "SparseResidential",
+    "similarity": 0.2482232004404068
+  },
+  {
+    "filename": "commercial_80.jpg",
+    "ground_truth": "Commercial",
+    "prediction": "Commercial",
+    "similarity": 0.2689448297023773
+  },
+  {
+    "filename": "commercial_95.jpg",
+    "ground_truth": "Commercial",
+    "prediction": "Commercial",
+    "similarity": 0.25999629497528076
+  },
+  {
+    "filename": "airport_97.jpg",
+    "ground_truth": "Airport",
+    "prediction": "Airport",
+    "similarity": 0.25298961997032166
+  },
+  {
+    "filename": "parking_78.jpg",
+    "ground_truth": "Parking",
+    "prediction": "Parking",
+    "similarity": 0.264430433511734
+  },
+  {
+    "filename": "bareland_77.jpg",
+    "ground_truth": "BareLand",
+    "prediction": "BareLand",
+    "similarity": 0.28434476256370544
+  },
+  {
+    "filename": "airport_82.jpg",
+    "ground_truth": "Airport",
+    "prediction": "Airport",
+    "similarity": 0.25880587100982666
+  },
+  {
+    "filename": "desert_79.jpg",
+    "ground_truth": "Desert",
+    "prediction": "Desert",
+    "similarity": 0.25472453236579895
+  },
+  {
+    "filename": "port_92.jpg",
+    "ground_truth": "Port",
+    "prediction": "Port",
+    "similarity": 0.2466149777173996
+  },
+  {
+    "filename": "school_74.jpg",
+    "ground_truth": "School",
+    "prediction": "School",
+    "similarity": 0.26701369881629944
+  },
+  {
+    "filename": "denseresidential_9.jpg",
+    "ground_truth": "DenseResidential",
+    "prediction": "DenseResidential",
+    "similarity": 0.23953211307525635
+  },
+  {
+    "filename": "forest_92.jpg",
+    "ground_truth": "Forest",
+    "prediction": "Forest",
+    "similarity": 0.2740512788295746
+  },
+  {
+    "filename": "church_81.jpg",
+    "ground_truth": "Church",
+    "prediction": "Church",
+    "similarity": 0.26251888275146484
+  },
+  {
+    "filename": "river_65.jpg",
+    "ground_truth": "River",
+    "prediction": "River",
+    "similarity": 0.2622716426849365
+  },
+  {
+    "filename": "resort_8.jpg",
+    "ground_truth": "Resort",
+    "prediction": "Resort",
+    "similarity": 0.23795168101787567
+  },
+  {
+    "filename": "bridge_67.jpg",
+    "ground_truth": "Bridge",
+    "prediction": "Bridge",
+    "similarity": 0.26492658257484436
+  },
+  {
+    "filename": "parking_66.jpg",
+    "ground_truth": "Parking",
+    "prediction": "Parking",
+    "similarity": 0.23800022900104523
+  },
+  {
+    "filename": "airport_67.jpg",
+    "ground_truth": "Airport",
+    "prediction": "RailwayStation",
+    "similarity": 0.27468341588974
+  },
+  {
+    "filename": "viaduct_71.jpg",
+    "ground_truth": "Viaduct",
+    "prediction": "Viaduct",
+    "similarity": 0.2644106447696686
+  },
+  {
+    "filename": "resort_77.jpg",
+    "ground_truth": "Resort",
+    "prediction": "Resort",
+    "similarity": 0.2440219521522522
+  },
+  {
+    "filename": "playground_90.jpg",
+    "ground_truth": "Playground",
+    "prediction": "Playground",
+    "similarity": 0.27373239398002625
+  },
+  {
+    "filename": "beach_92.jpg",
+    "ground_truth": "Beach",
+    "prediction": "Beach",
+    "similarity": 0.2773292660713196
+  },
+  {
+    "filename": "mediumresidential_98.jpg",
+    "ground_truth": "MediumResidential",
+    "prediction": "MediumResidential",
+    "similarity": 0.26441431045532227
+  },
+  {
+    "filename": "port_80.jpg",
+    "ground_truth": "Port",
+    "prediction": "Port",
+    "similarity": 0.2703411877155304
+  },
+  {
+    "filename": "airport_90.jpg",
+    "ground_truth": "Airport",
+    "prediction": "Airport",
+    "similarity": 0.2486356943845749
+  },
+  {
+    "filename": "church_78.jpg",
+    "ground_truth": "Church",
+    "prediction": "Church",
+    "similarity": 0.2674204707145691
+  },
+  {
+    "filename": "port_73.jpg",
+    "ground_truth": "Port",
+    "prediction": "Port",
+    "similarity": 0.2878047227859497
+  },
+  {
+    "filename": "beach_65.jpg",
+    "ground_truth": "Beach",
+    "prediction": "Beach",
+    "similarity": 0.2630802392959595
+  },
+  {
+    "filename": "resort_98.jpg",
+    "ground_truth": "Resort",
+    "prediction": "Resort",
+    "similarity": 0.2550889551639557
+  },
+  {
+    "filename": "church_80.jpg",
+    "ground_truth": "Church",
+    "prediction": "Church",
+    "similarity": 0.2737369239330292
+  },
+  {
+    "filename": "storagetanks_91.jpg",
+    "ground_truth": "StorageTanks",
+    "prediction": "StorageTanks",
+    "similarity": 0.24682316184043884
+  },
+  {
+    "filename": "viaduct_75.jpg",
+    "ground_truth": "Viaduct",
+    "prediction": "Viaduct",
+    "similarity": 0.2569543421268463
+  },
+  {
+    "filename": "mountain_87.jpg",
+    "ground_truth": "Mountain",
+    "prediction": "Mountain",
+    "similarity": 0.2657013535499573
+  },
+  {
+    "filename": "park_90.jpg",
+    "ground_truth": "Park",
+    "prediction": "Park",
+    "similarity": 0.25634241104125977
+  },
+  {
+    "filename": "sparseresidential_74.jpg",
+    "ground_truth": "SparseResidential",
+    "prediction": "SparseResidential",
+    "similarity": 0.2580091655254364
+  },
+  {
+    "filename": "meadow_77.jpg",
+    "ground_truth": "Meadow",
+    "prediction": "Meadow",
+    "similarity": 0.2592064142227173
+  },
+  {
+    "filename": "park_85.jpg",
+    "ground_truth": "Park",
+    "prediction": "Park",
+    "similarity": 0.2653827965259552
+  },
+  {
+    "filename": "viaduct_98.jpg",
+    "ground_truth": "Viaduct",
+    "prediction": "Viaduct",
+    "similarity": 0.2486557960510254
+  },
+  {
+    "filename": "airport_80.jpg",
+    "ground_truth": "Airport",
+    "prediction": "Airport",
+    "similarity": 0.2692030072212219
+  },
+  {
+    "filename": "playground_81.jpg",
+    "ground_truth": "Playground",
+    "prediction": "playfields",
+    "similarity": 0.26821187138557434
+  },
+  {
+    "filename": "park_94.jpg",
+    "ground_truth": "Park",
+    "prediction": "Park",
+    "similarity": 0.27238211035728455
+  },
+  {
+    "filename": "pond_99.jpg",
+    "ground_truth": "Pond",
+    "prediction": "Pond",
+    "similarity": 0.26955556869506836
+  },
+  {
+    "filename": "00731.jpg",
+    "ground_truth": "playfields",
+    "prediction": "BaseballField",
+    "similarity": 0.25905823707580566
+  },
+  {
+    "filename": "baseballfield_88.jpg",
+    "ground_truth": "BaseballField",
+    "prediction": "BaseballField",
+    "similarity": 0.28577321767807007
+  },
+  {
+    "filename": "river_94.jpg",
+    "ground_truth": "River",
+    "prediction": "River",
+    "similarity": 0.2702670693397522
+  },
+  {
+    "filename": "storagetanks_64.jpg",
+    "ground_truth": "StorageTanks",
+    "prediction": "StorageTanks",
+    "similarity": 0.2715827226638794
+  },
+  {
+    "filename": "forest_81.jpg",
+    "ground_truth": "Forest",
+    "prediction": "Forest",
+    "similarity": 0.2755145728588104
+  },
+  {
+    "filename": "viaduct_97.jpg",
+    "ground_truth": "Viaduct",
+    "prediction": "Viaduct",
+    "similarity": 0.26897022128105164
+  },
+  {
+    "filename": "beach_83.jpg",
+    "ground_truth": "Beach",
+    "prediction": "Beach",
+    "similarity": 0.2776878774166107
+  },
+  {
+    "filename": "bridge_6.jpg",
+    "ground_truth": "Bridge",
+    "prediction": "Bridge",
+    "similarity": 0.28310680389404297
+  },
+  {
+    "filename": "stadium_99.jpg",
+    "ground_truth": "Stadium",
+    "prediction": "Stadium",
+    "similarity": 0.27350887656211853
+  },
+  {
+    "filename": "storagetanks_65.jpg",
+    "ground_truth": "StorageTanks",
+    "prediction": "StorageTanks",
+    "similarity": 0.25065940618515015
+  },
+  {
+    "filename": "baseballfield_79.jpg",
+    "ground_truth": "BaseballField",
+    "prediction": "BaseballField",
+    "similarity": 0.26459801197052
+  },
+  {
+    "filename": "parking_93.jpg",
+    "ground_truth": "Parking",
+    "prediction": "Parking",
+    "similarity": 0.249145969748497
+  },
+  {
+    "filename": "viaduct_65.jpg",
+    "ground_truth": "Viaduct",
+    "prediction": "Viaduct",
+    "similarity": 0.27072933316230774
+  },
+  {
+    "filename": "parking_87.jpg",
+    "ground_truth": "Parking",
+    "prediction": "Parking",
+    "similarity": 0.2619786262512207
+  },
+  {
+    "filename": "airport_95.jpg",
+    "ground_truth": "Airport",
+    "prediction": "Airport",
+    "similarity": 0.25278010964393616
+  },
+  {
+    "filename": "beach_88.jpg",
+    "ground_truth": "Beach",
+    "prediction": "Beach",
+    "similarity": 0.26951268315315247
+  },
+  {
+    "filename": "bridge_96.jpg",
+    "ground_truth": "Bridge",
+    "prediction": "Bridge",
+    "similarity": 0.26835885643959045
+  },
+  {
+    "filename": "church_95.jpg",
+    "ground_truth": "Church",
+    "prediction": "Church",
+    "similarity": 0.26249903440475464
+  },
+  {
+    "filename": "farmland_84.jpg",
+    "ground_truth": "Farmland",
+    "prediction": "Farmland",
+    "similarity": 0.28974881768226624
+  },
+  {
+    "filename": "bareland_73.jpg",
+    "ground_truth": "BareLand",
+    "prediction": "BareLand",
+    "similarity": 0.27831318974494934
+  },
+  {
+    "filename": "storagetanks_67.jpg",
+    "ground_truth": "StorageTanks",
+    "prediction": "StorageTanks",
+    "similarity": 0.28084731101989746
+  },
+  {
+    "filename": "port_82.jpg",
+    "ground_truth": "Port",
+    "prediction": "Port",
+    "similarity": 0.263799786567688
+  },
+  {
+    "filename": "church_82.jpg",
+    "ground_truth": "Church",
+    "prediction": "Church",
+    "similarity": 0.2557840645313263
+  },
+  {
+    "filename": "park_93.jpg",
+    "ground_truth": "Park",
+    "prediction": "Park",
+    "similarity": 0.2568358778953552
+  },
+  {
+    "filename": "playground_7.jpg",
+    "ground_truth": "Playground",
+    "prediction": "Playground",
+    "similarity": 0.27710190415382385
+  },
+  {
+    "filename": "park_70.jpg",
+    "ground_truth": "Park",
+    "prediction": "Commercial",
+    "similarity": 0.24280968308448792
+  },
+  {
+    "filename": "bridge_78.jpg",
+    "ground_truth": "Bridge",
+    "prediction": "Bridge",
+    "similarity": 0.28804725408554077
+  },
+  {
+    "filename": "viaduct_94.jpg",
+    "ground_truth": "Viaduct",
+    "prediction": "Viaduct",
+    "similarity": 0.2677876055240631
+  },
+  {
+    "filename": "church_79.jpg",
+    "ground_truth": "Church",
+    "prediction": "Church",
+    "similarity": 0.27547359466552734
+  },
+  {
+    "filename": "square_95.jpg",
+    "ground_truth": "Square",
+    "prediction": "Airport",
+    "similarity": 0.24111370742321014
+  },
+  {
+    "filename": "storagetanks_97.jpg",
+    "ground_truth": "StorageTanks",
+    "prediction": "StorageTanks",
+    "similarity": 0.26963186264038086
+  },
+  {
+    "filename": "park_98.jpg",
+    "ground_truth": "Park",
+    "prediction": "Park",
+    "similarity": 0.2753964066505432
+  },
+  {
+    "filename": "mountain_73.jpg",
+    "ground_truth": "Mountain",
+    "prediction": "Mountain",
+    "similarity": 0.27640998363494873
+  },
+  {
+    "filename": "school_84.jpg",
+    "ground_truth": "School",
+    "prediction": "School",
+    "similarity": 0.26718297600746155
+  },
+  {
+    "filename": "desert_98.jpg",
+    "ground_truth": "Desert",
+    "prediction": "Desert",
+    "similarity": 0.259308397769928
+  },
+  {
+    "filename": "denseresidential_90.jpg",
+    "ground_truth": "DenseResidential",
+    "prediction": "DenseResidential",
+    "similarity": 0.2699737846851349
+  },
+  {
+    "filename": "industrial_66.jpg",
+    "ground_truth": "Industrial",
+    "prediction": "Industrial",
+    "similarity": 0.25490516424179077
+  },
+  {
+    "filename": "industrial_97.jpg",
+    "ground_truth": "Industrial",
+    "prediction": "Industrial",
+    "similarity": 0.27420881390571594
+  },
+  {
+    "filename": "airport_61.jpg",
+    "ground_truth": "Airport",
+    "prediction": "Airport",
+    "similarity": 0.265255868434906
+  },
+  {
+    "filename": "meadow_97.jpg",
+    "ground_truth": "Meadow",
+    "prediction": "Meadow",
+    "similarity": 0.2651568651199341
+  },
+  {
+    "filename": "desert_74.jpg",
+    "ground_truth": "Desert",
+    "prediction": "Desert",
+    "similarity": 0.2592400908470154
+  },
+  {
+    "filename": "river_77.jpg",
+    "ground_truth": "River",
+    "prediction": "River",
+    "similarity": 0.2659085690975189
+  },
+  {
+    "filename": "mediumresidential_75.jpg",
+    "ground_truth": "MediumResidential",
+    "prediction": "MediumResidential",
+    "similarity": 0.27821144461631775
+  },
+  {
+    "filename": "farmland_7.jpg",
+    "ground_truth": "Farmland",
+    "prediction": "Farmland",
+    "similarity": 0.2639996111392975
+  },
+  {
+    "filename": "parking_67.jpg",
+    "ground_truth": "Parking",
+    "prediction": "Parking",
+    "similarity": 0.26214003562927246
+  },
+  {
+    "filename": "bareland_86.jpg",
+    "ground_truth": "BareLand",
+    "prediction": "BareLand",
+    "similarity": 0.2804409861564636
+  },
+  {
+    "filename": "mountain_96.jpg",
+    "ground_truth": "Mountain",
+    "prediction": "Mountain",
+    "similarity": 0.27758219838142395
+  },
+  {
+    "filename": "viaduct_69.jpg",
+    "ground_truth": "Viaduct",
+    "prediction": "Viaduct",
+    "similarity": 0.28837358951568604
+  },
+  {
+    "filename": "00723.jpg",
+    "ground_truth": "playfields",
+    "prediction": "playfields",
+    "similarity": 0.26929131150245667
+  },
+  {
+    "filename": "parking_69.jpg",
+    "ground_truth": "Parking",
+    "prediction": "Parking",
+    "similarity": 0.26564204692840576
+  },
+  {
+    "filename": "mountain_98.jpg",
+    "ground_truth": "Mountain",
+    "prediction": "Mountain",
+    "similarity": 0.26251420378685
+  },
+  {
+    "filename": "stadium_80.jpg",
+    "ground_truth": "Stadium",
+    "prediction": "Stadium",
+    "similarity": 0.28246575593948364
+  },
+  {
+    "filename": "center_76.jpg",
+    "ground_truth": "Center",
+    "prediction": "Center",
+    "similarity": 0.2889939844608307
+  },
+  {
+    "filename": "00799.jpg",
+    "ground_truth": "playfields",
+    "prediction": "Playground",
+    "similarity": 0.25961387157440186
+  },
+  {
+    "filename": "00921.jpg",
+    "ground_truth": "playfields",
+    "prediction": "Playground",
+    "similarity": 0.26661860942840576
+  },
+  {
+    "filename": "00848.jpg",
+    "ground_truth": "playfields",
+    "prediction": "playfields",
+    "similarity": 0.25607556104660034
+  },
+  {
+    "filename": "playground_82.jpg",
+    "ground_truth": "Playground",
+    "prediction": "playfields",
+    "similarity": 0.25879552960395813
+  },
+  {
+    "filename": "viaduct_81.jpg",
+    "ground_truth": "Viaduct",
+    "prediction": "Viaduct",
+    "similarity": 0.2589249014854431
+  },
+  {
+    "filename": "stadium_96.jpg",
+    "ground_truth": "Stadium",
+    "prediction": "Stadium",
+    "similarity": 0.26751676201820374
+  },
+  {
+    "filename": "desert_78.jpg",
+    "ground_truth": "Desert",
+    "prediction": "Desert",
+    "similarity": 0.25860849022865295
+  },
+  {
+    "filename": "denseresidential_97.jpg",
+    "ground_truth": "DenseResidential",
+    "prediction": "DenseResidential",
+    "similarity": 0.23254269361495972
+  },
+  {
+    "filename": "farmland_77.jpg",
+    "ground_truth": "Farmland",
+    "prediction": "Farmland",
+    "similarity": 0.27547651529312134
+  },
+  {
+    "filename": "forest_93.jpg",
+    "ground_truth": "Forest",
+    "prediction": "Forest",
+    "similarity": 0.27215898036956787
+  },
+  {
+    "filename": "resort_90.jpg",
+    "ground_truth": "Resort",
+    "prediction": "Resort",
+    "similarity": 0.2456430196762085
+  },
+  {
+    "filename": "bridge_66.jpg",
+    "ground_truth": "Bridge",
+    "prediction": "Port",
+    "similarity": 0.28126636147499084
+  },
+  {
+    "filename": "pond_63.jpg",
+    "ground_truth": "Pond",
+    "prediction": "Pond",
+    "similarity": 0.25694534182548523
+  },
+  {
+    "filename": "farmland_78.jpg",
+    "ground_truth": "Farmland",
+    "prediction": "Farmland",
+    "similarity": 0.29374656081199646
+  },
+  {
+    "filename": "00864.jpg",
+    "ground_truth": "playfields",
+    "prediction": "BaseballField",
+    "similarity": 0.254003643989563
+  },
+  {
+    "filename": "bridge_79.jpg",
+    "ground_truth": "Bridge",
+    "prediction": "Bridge",
+    "similarity": 0.27294230461120605
+  },
+  {
+    "filename": "baseballfield_94.jpg",
+    "ground_truth": "BaseballField",
+    "prediction": "BaseballField",
+    "similarity": 0.2846686840057373
+  },
+  {
+    "filename": "farmland_86.jpg",
+    "ground_truth": "Farmland",
+    "prediction": "Farmland",
+    "similarity": 0.2881883382797241
+  },
+  {
+    "filename": "mountain_88.jpg",
+    "ground_truth": "Mountain",
+    "prediction": "Mountain",
+    "similarity": 0.2788985073566437
+  },
+  {
+    "filename": "industrial_86.jpg",
+    "ground_truth": "Industrial",
+    "prediction": "Industrial",
+    "similarity": 0.28441381454467773
+  },
+  {
+    "filename": "viaduct_76.jpg",
+    "ground_truth": "Viaduct",
+    "prediction": "Viaduct",
+    "similarity": 0.27604928612709045
+  },
+  {
+    "filename": "square_85.jpg",
+    "ground_truth": "Square",
+    "prediction": "Square",
+    "similarity": 0.2627294361591339
+  },
+  {
+    "filename": "meadow_76.jpg",
+    "ground_truth": "Meadow",
+    "prediction": "Meadow",
+    "similarity": 0.2684365212917328
+  },
+  {
+    "filename": "stadium_76.jpg",
+    "ground_truth": "Stadium",
+    "prediction": "Stadium",
+    "similarity": 0.25668302178382874
+  },
+  {
+    "filename": "viaduct_63.jpg",
+    "ground_truth": "Viaduct",
+    "prediction": "Viaduct",
+    "similarity": 0.27343279123306274
+  },
+  {
+    "filename": "farmland_80.jpg",
+    "ground_truth": "Farmland",
+    "prediction": "Farmland",
+    "similarity": 0.27796024084091187
+  },
+  {
+    "filename": "playground_95.jpg",
+    "ground_truth": "Playground",
+    "prediction": "playfields",
+    "similarity": 0.23839186131954193
+  },
+  {
+    "filename": "denseresidential_66.jpg",
+    "ground_truth": "DenseResidential",
+    "prediction": "DenseResidential",
+    "similarity": 0.2602696716785431
+  },
+  {
+    "filename": "river_66.jpg",
+    "ground_truth": "River",
+    "prediction": "River",
+    "similarity": 0.25927233695983887
+  },
+  {
+    "filename": "railwaystation_79.jpg",
+    "ground_truth": "RailwayStation",
+    "prediction": "RailwayStation",
+    "similarity": 0.2659800946712494
+  },
+  {
+    "filename": "forest_79.jpg",
+    "ground_truth": "Forest",
+    "prediction": "Forest",
+    "similarity": 0.2777960002422333
+  },
+  {
+    "filename": "commercial_70.jpg",
+    "ground_truth": "Commercial",
+    "prediction": "School",
+    "similarity": 0.2526204288005829
+  },
+  {
+    "filename": "square_84.jpg",
+    "ground_truth": "Square",
+    "prediction": "Square",
+    "similarity": 0.26264488697052
+  },
+  {
+    "filename": "river_80.jpg",
+    "ground_truth": "River",
+    "prediction": "River",
+    "similarity": 0.2696940302848816
+  },
+  {
+    "filename": "commercial_93.jpg",
+    "ground_truth": "Commercial",
+    "prediction": "School",
+    "similarity": 0.25351622700691223
+  },
+  {
+    "filename": "bareland_91.jpg",
+    "ground_truth": "BareLand",
+    "prediction": "BareLand",
+    "similarity": 0.2418345808982849
+  },
+  {
+    "filename": "railwaystation_87.jpg",
+    "ground_truth": "RailwayStation",
+    "prediction": "RailwayStation",
+    "similarity": 0.28575563430786133
+  },
+  {
+    "filename": "bareland_95.jpg",
+    "ground_truth": "BareLand",
+    "prediction": "BareLand",
+    "similarity": 0.2707911431789398
+  },
+  {
+    "filename": "farmland_79.jpg",
+    "ground_truth": "Farmland",
+    "prediction": "Farmland",
+    "similarity": 0.28285378217697144
+  },
+  {
+    "filename": "sparseresidential_72.jpg",
+    "ground_truth": "SparseResidential",
+    "prediction": "SparseResidential",
+    "similarity": 0.2484288215637207
+  },
+  {
+    "filename": "railwaystation_82.jpg",
+    "ground_truth": "RailwayStation",
+    "prediction": "RailwayStation",
+    "similarity": 0.2845095992088318
+  },
+  {
+    "filename": "forest_89.jpg",
+    "ground_truth": "Forest",
+    "prediction": "Forest",
+    "similarity": 0.27238279581069946
+  },
+  {
+    "filename": "commercial_72.jpg",
+    "ground_truth": "Commercial",
+    "prediction": "Commercial",
+    "similarity": 0.25906339287757874
+  },
+  {
+    "filename": "resort_76.jpg",
+    "ground_truth": "Resort",
+    "prediction": "Resort",
+    "similarity": 0.23798125982284546
+  },
+  {
+    "filename": "school_93.jpg",
+    "ground_truth": "School",
+    "prediction": "School",
+    "similarity": 0.2777565121650696
+  },
+  {
+    "filename": "commercial_83.jpg",
+    "ground_truth": "Commercial",
+    "prediction": "Commercial",
+    "similarity": 0.26222485303878784
+  },
+  {
+    "filename": "mediumresidential_94.jpg",
+    "ground_truth": "MediumResidential",
+    "prediction": "MediumResidential",
+    "similarity": 0.28455889225006104
+  },
+  {
+    "filename": "center_81.jpg",
+    "ground_truth": "Center",
+    "prediction": "Center",
+    "similarity": 0.2818314731121063
+  },
+  {
+    "filename": "storagetanks_90.jpg",
+    "ground_truth": "StorageTanks",
+    "prediction": "StorageTanks",
+    "similarity": 0.27268892526626587
+  },
+  {
+    "filename": "bareland_99.jpg",
+    "ground_truth": "BareLand",
+    "prediction": "BareLand",
+    "similarity": 0.2720731496810913
+  },
+  {
+    "filename": "bridge_62.jpg",
+    "ground_truth": "Bridge",
+    "prediction": "Bridge",
+    "similarity": 0.2806805372238159
+  },
+  {
+    "filename": "farmland_88.jpg",
+    "ground_truth": "Farmland",
+    "prediction": "Farmland",
+    "similarity": 0.29321688413619995
+  },
+  {
+    "filename": "park_82.jpg",
+    "ground_truth": "Park",
+    "prediction": "Park",
+    "similarity": 0.27855587005615234
+  },
+  {
+    "filename": "river_79.jpg",
+    "ground_truth": "River",
+    "prediction": "River",
+    "similarity": 0.26852601766586304
+  },
+  {
+    "filename": "meadow_98.jpg",
+    "ground_truth": "Meadow",
+    "prediction": "Meadow",
+    "similarity": 0.2749013304710388
+  },
+  {
+    "filename": "square_81.jpg",
+    "ground_truth": "Square",
+    "prediction": "Viaduct",
+    "similarity": 0.2579767405986786
+  },
+  {
+    "filename": "resort_91.jpg",
+    "ground_truth": "Resort",
+    "prediction": "Resort",
+    "similarity": 0.26477473974227905
+  },
+  {
+    "filename": "commercial_71.jpg",
+    "ground_truth": "Commercial",
+    "prediction": "Commercial",
+    "similarity": 0.2673880457878113
+  },
+  {
+    "filename": "industrial_85.jpg",
+    "ground_truth": "Industrial",
+    "prediction": "Industrial",
+    "similarity": 0.2749760150909424
+  },
+  {
+    "filename": "airport_73.jpg",
+    "ground_truth": "Airport",
+    "prediction": "Airport",
+    "similarity": 0.2717444896697998
+  },
+  {
+    "filename": "farmland_83.jpg",
+    "ground_truth": "Farmland",
+    "prediction": "Farmland",
+    "similarity": 0.2769501805305481
+  },
+  {
+    "filename": "sparseresidential_83.jpg",
+    "ground_truth": "SparseResidential",
+    "prediction": "SparseResidential",
+    "similarity": 0.21697092056274414
+  },
+  {
+    "filename": "square_92.jpg",
+    "ground_truth": "Square",
+    "prediction": "Square",
+    "similarity": 0.2679888904094696
+  },
+  {
+    "filename": "viaduct_70.jpg",
+    "ground_truth": "Viaduct",
+    "prediction": "Viaduct",
+    "similarity": 0.27267566323280334
+  },
+  {
+    "filename": "mediumresidential_96.jpg",
+    "ground_truth": "MediumResidential",
+    "prediction": "MediumResidential",
+    "similarity": 0.2858414351940155
+  },
+  {
+    "filename": "river_85.jpg",
+    "ground_truth": "River",
+    "prediction": "River",
+    "similarity": 0.2567402422428131
+  },
+  {
+    "filename": "sparseresidential_84.jpg",
+    "ground_truth": "SparseResidential",
+    "prediction": "SparseResidential",
+    "similarity": 0.23370282351970673
+  },
+  {
+    "filename": "desert_87.jpg",
+    "ground_truth": "Desert",
+    "prediction": "Desert",
+    "similarity": 0.2597082257270813
+  },
+  {
+    "filename": "stadium_94.jpg",
+    "ground_truth": "Stadium",
+    "prediction": "Stadium",
+    "similarity": 0.24259042739868164
+  },
+  {
+    "filename": "airport_69.jpg",
+    "ground_truth": "Airport",
+    "prediction": "Airport",
+    "similarity": 0.26929324865341187
+  },
+  {
+    "filename": "port_81.jpg",
+    "ground_truth": "Port",
+    "prediction": "Port",
+    "similarity": 0.2725909948348999
+  },
+  {
+    "filename": "industrial_80.jpg",
+    "ground_truth": "Industrial",
+    "prediction": "Industrial",
+    "similarity": 0.2850208282470703
+  },
+  {
+    "filename": "mountain_92.jpg",
+    "ground_truth": "Mountain",
+    "prediction": "Mountain",
+    "similarity": 0.27914780378341675
+  },
+  {
+    "filename": "denseresidential_72.jpg",
+    "ground_truth": "DenseResidential",
+    "prediction": "DenseResidential",
+    "similarity": 0.2862812578678131
+  },
+  {
+    "filename": "center_85.jpg",
+    "ground_truth": "Center",
+    "prediction": "Center",
+    "similarity": 0.23764774203300476
+  },
+  {
+    "filename": "storagetanks_75.jpg",
+    "ground_truth": "StorageTanks",
+    "prediction": "StorageTanks",
+    "similarity": 0.2652977406978607
+  },
+  {
+    "filename": "desert_73.jpg",
+    "ground_truth": "Desert",
+    "prediction": "Desert",
+    "similarity": 0.26405948400497437
+  },
+  {
+    "filename": "school_83.jpg",
+    "ground_truth": "School",
+    "prediction": "School",
+    "similarity": 0.2534237205982208
+  },
+  {
+    "filename": "farmland_67.jpg",
+    "ground_truth": "Farmland",
+    "prediction": "Farmland",
+    "similarity": 0.27646878361701965
+  },
+  {
+    "filename": "00908.jpg",
+    "ground_truth": "playfields",
+    "prediction": "BaseballField",
+    "similarity": 0.22051911056041718
+  },
+  {
+    "filename": "forest_82.jpg",
+    "ground_truth": "Forest",
+    "prediction": "Forest",
+    "similarity": 0.2681196331977844
+  },
+  {
+    "filename": "beach_95.jpg",
+    "ground_truth": "Beach",
+    "prediction": "Beach",
+    "similarity": 0.27015313506126404
+  },
+  {
+    "filename": "stadium_74.jpg",
+    "ground_truth": "Stadium",
+    "prediction": "Stadium",
+    "similarity": 0.27977338433265686
+  },
+  {
+    "filename": "mountain_9.jpg",
+    "ground_truth": "Mountain",
+    "prediction": "Mountain",
+    "similarity": 0.2777087986469269
+  },
+  {
+    "filename": "viaduct_68.jpg",
+    "ground_truth": "Viaduct",
+    "prediction": "Viaduct",
+    "similarity": 0.27619606256484985
+  },
+  {
+    "filename": "resort_79.jpg",
+    "ground_truth": "Resort",
+    "prediction": "Resort",
+    "similarity": 0.2580701410770416
+  },
+  {
+    "filename": "pond_82.jpg",
+    "ground_truth": "Pond",
+    "prediction": "Pond",
+    "similarity": 0.27985522150993347
+  },
+  {
+    "filename": "industrial_79.jpg",
+    "ground_truth": "Industrial",
+    "prediction": "Industrial",
+    "similarity": 0.282267689704895
+  },
+  {
+    "filename": "mountain_72.jpg",
+    "ground_truth": "Mountain",
+    "prediction": "Mountain",
+    "similarity": 0.26699090003967285
+  },
+  {
+    "filename": "00887.jpg",
+    "ground_truth": "playfields",
+    "prediction": "playfields",
+    "similarity": 0.25120869278907776
+  },
+  {
+    "filename": "square_90.jpg",
+    "ground_truth": "Square",
+    "prediction": "Farmland",
+    "similarity": 0.23078323900699615
+  },
+  {
+    "filename": "desert_82.jpg",
+    "ground_truth": "Desert",
+    "prediction": "Desert",
+    "similarity": 0.25725218653678894
+  },
+  {
+    "filename": "00737.jpg",
+    "ground_truth": "playfields",
+    "prediction": "playfields",
+    "similarity": 0.2091030776500702
+  },
+  {
+    "filename": "railwaystation_89.jpg",
+    "ground_truth": "RailwayStation",
+    "prediction": "RailwayStation",
+    "similarity": 0.2837904989719391
+  },
+  {
+    "filename": "mediumresidential_73.jpg",
+    "ground_truth": "MediumResidential",
+    "prediction": "MediumResidential",
+    "similarity": 0.2671966850757599
+  },
+  {
+    "filename": "farmland_82.jpg",
+    "ground_truth": "Farmland",
+    "prediction": "Farmland",
+    "similarity": 0.2719016373157501
+  },
+  {
+    "filename": "playground_71.jpg",
+    "ground_truth": "Playground",
+    "prediction": "playfields",
+    "similarity": 0.2728143334388733
+  },
+  {
+    "filename": "mediumresidential_92.jpg",
+    "ground_truth": "MediumResidential",
+    "prediction": "MediumResidential",
+    "similarity": 0.27894869446754456
+  },
+  {
+    "filename": "parking_76.jpg",
+    "ground_truth": "Parking",
+    "prediction": "Parking",
+    "similarity": 0.266244113445282
+  },
+  {
+    "filename": "00815.jpg",
+    "ground_truth": "playfields",
+    "prediction": "School",
+    "similarity": 0.22527070343494415
+  },
+  {
+    "filename": "river_88.jpg",
+    "ground_truth": "River",
+    "prediction": "River",
+    "similarity": 0.26423925161361694
+  },
+  {
+    "filename": "sparseresidential_77.jpg",
+    "ground_truth": "SparseResidential",
+    "prediction": "SparseResidential",
+    "similarity": 0.21387529373168945
+  },
+  {
+    "filename": "storagetanks_94.jpg",
+    "ground_truth": "StorageTanks",
+    "prediction": "StorageTanks",
+    "similarity": 0.28391435742378235
+  },
+  {
+    "filename": "church_85.jpg",
+    "ground_truth": "Church",
+    "prediction": "Church",
+    "similarity": 0.2598950266838074
+  },
+  {
+    "filename": "school_92.jpg",
+    "ground_truth": "School",
+    "prediction": "School",
+    "similarity": 0.28865721821784973
+  },
+  {
+    "filename": "parking_82.jpg",
+    "ground_truth": "Parking",
+    "prediction": "Parking",
+    "similarity": 0.266408771276474
+  },
+  {
+    "filename": "bridge_69.jpg",
+    "ground_truth": "Bridge",
+    "prediction": "Bridge",
+    "similarity": 0.2608667016029358
+  },
+  {
+    "filename": "port_65.jpg",
+    "ground_truth": "Port",
+    "prediction": "Port",
+    "similarity": 0.25187644362449646
+  },
+  {
+    "filename": "industrial_90.jpg",
+    "ground_truth": "Industrial",
+    "prediction": "Industrial",
+    "similarity": 0.22895224392414093
+  },
+  {
+    "filename": "baseballfield_84.jpg",
+    "ground_truth": "BaseballField",
+    "prediction": "BaseballField",
+    "similarity": 0.24535918235778809
+  },
+  {
+    "filename": "mountain_84.jpg",
+    "ground_truth": "Mountain",
+    "prediction": "Mountain",
+    "similarity": 0.27752137184143066
+  },
+  {
+    "filename": "desert_80.jpg",
+    "ground_truth": "Desert",
+    "prediction": "Desert",
+    "similarity": 0.26801443099975586
+  },
+  {
+    "filename": "forest_83.jpg",
+    "ground_truth": "Forest",
+    "prediction": "Forest",
+    "similarity": 0.26469624042510986
+  },
+  {
+    "filename": "square_9.jpg",
+    "ground_truth": "Square",
+    "prediction": "Square",
+    "similarity": 0.263081818819046
+  },
+  {
+    "filename": "mediumresidential_78.jpg",
+    "ground_truth": "MediumResidential",
+    "prediction": "MediumResidential",
+    "similarity": 0.2764509320259094
+  },
+  {
+    "filename": "industrial_84.jpg",
+    "ground_truth": "Industrial",
+    "prediction": "Industrial",
+    "similarity": 0.23177488148212433
+  },
+  {
+    "filename": "denseresidential_62.jpg",
+    "ground_truth": "DenseResidential",
+    "prediction": "DenseResidential",
+    "similarity": 0.2519207000732422
+  },
+  {
+    "filename": "square_93.jpg",
+    "ground_truth": "Square",
+    "prediction": "Square",
+    "similarity": 0.25025129318237305
+  },
+  {
+    "filename": "bareland_75.jpg",
+    "ground_truth": "BareLand",
+    "prediction": "BareLand",
+    "similarity": 0.26733845472335815
+  }
+]
