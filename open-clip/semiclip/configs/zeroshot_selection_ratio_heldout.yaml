@@ -1,0 +1,37 @@
+image_dir: ../../../RSICD_images
+json_path: ../../../dataset_rsicd.json
+dataset_split: val
+class_dir: ../../../txtclasses_rsicd
+models:
+- label: ratio_0.1
+  model_name: ViT-B-32
+  pretrained_tag: laion2b_s34b_b79k
+  checkpoint_type: finetune
+  checkpoint_path: ../results/semiclip_ablation/selection_ratio/ratio_0.1/stage2_final.pt
+- label: ratio_0.3
+  model_name: ViT-B-32
+  pretrained_tag: laion2b_s34b_b79k
+  checkpoint_type: finetune
+  checkpoint_path: ../results/semiclip_ablation/baseline/stage2_final.pt
+- label: ratio_0.5
+  model_name: ViT-B-32
+  pretrained_tag: laion2b_s34b_b79k
+  checkpoint_type: finetune
+  checkpoint_path: ../results/semiclip_ablation/selection_ratio/ratio_0.5/stage2_final.pt
+- label: ratio_0.7
+  model_name: ViT-B-32
+  pretrained_tag: laion2b_s34b_b79k
+  checkpoint_type: finetune
+  checkpoint_path: ../results/semiclip_ablation/selection_ratio/ratio_0.7/stage2_final.pt
+- label: ratio_0.9
+  model_name: ViT-B-32
+  pretrained_tag: laion2b_s34b_b79k
+  checkpoint_type: finetune
+  checkpoint_path: ../results/semiclip_ablation/selection_ratio/ratio_0.9/stage2_final.pt
+- label: ratio_1.0
+  model_name: ViT-B-32
+  pretrained_tag: laion2b_s34b_b79k
+  checkpoint_type: finetune
+  checkpoint_path: ../results/semiclip_ablation/selection_ratio/ratio_1.0/stage2_final.pt
+subset_filenames_json: ../results/semiclip_ablation/baseline/concepts.json
+subset_filenames_key: labeled_validation_filenames

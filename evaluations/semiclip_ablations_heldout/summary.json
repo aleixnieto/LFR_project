@@ -1,0 +1,84 @@
+{
+  "models": [
+    {
+      "label": "baseline",
+      "checkpoint_path": "/proj/cvl/users/x_maeca/LFR_project/open-clip/semiclip/results/semiclip_ablation/baseline/stage2_final.pt",
+      "checkpoint_type": "finetune",
+      "num_samples": 219,
+      "accuracy": 0.8995433789954338,
+      "weighted_precision": 0.9045006997061792,
+      "weighted_recall": 0.8995433789954338,
+      "weighted_f1": 0.8971758513323043
+    },
+    {
+      "label": "top_k_1",
+      "checkpoint_path": "/proj/cvl/users/x_maeca/LFR_project/open-clip/semiclip/results/semiclip_ablation/concept_top_k/top_k_1/stage2_final.pt",
+      "checkpoint_type": "finetune",
+      "num_samples": 219,
+      "accuracy": 0.9041095890410958,
+      "weighted_precision": 0.9099384760343664,
+      "weighted_recall": 0.9041095890410958,
+      "weighted_f1": 0.9029263081801358
+    },
+    {
+      "label": "top_k_5",
+      "checkpoint_path": "/proj/cvl/users/x_maeca/LFR_project/open-clip/semiclip/results/semiclip_ablation/concept_top_k/top_k_5/stage2_final.pt",
+      "checkpoint_type": "finetune",
+      "num_samples": 219,
+      "accuracy": 0.91324200913242,
+      "weighted_precision": 0.9171437644040383,
+      "weighted_recall": 0.91324200913242,
+      "weighted_f1": 0.9080727792814821
+    },
+    {
+      "label": "lr_0.00001",
+      "checkpoint_path": "/proj/cvl/users/x_maeca/LFR_project/open-clip/semiclip/results/semiclip_ablation/learning_rate/lr_0.00001/stage2_final.pt",
+      "checkpoint_type": "finetune",
+      "num_samples": 219,
+      "accuracy": 0.9178082191780822,
+      "weighted_precision": 0.9477228884763129,
+      "weighted_recall": 0.9178082191780822,
+      "weighted_f1": 0.9081087136000408
+    },
+    {
+      "label": "lr_0.0001",
+      "checkpoint_path": "/proj/cvl/users/x_maeca/LFR_project/open-clip/semiclip/results/semiclip_ablation/learning_rate/lr_0.0001/stage2_final.pt",
+      "checkpoint_type": "finetune",
+      "num_samples": 219,
+      "accuracy": 0.8995433789954338,
+      "weighted_precision": 0.9120633932277767,
+      "weighted_recall": 0.8995433789954338,
+      "weighted_f1": 0.8975192891389508
+    },
+    {
+      "label": "no_concept",
+      "checkpoint_path": "/proj/cvl/users/x_maeca/LFR_project/open-clip/semiclip/results/semiclip_ablation/no_concept/stage2_final.pt",
+      "checkpoint_type": "finetune",
+      "num_samples": 219,
+      "accuracy": 0.8858447488584474,
+      "weighted_precision": 0.8923715300427629,
+      "weighted_recall": 0.8858447488584474,
+      "weighted_f1": 0.8816185370112779
+    },
+    {
+      "label": "no_intramodal",
+      "checkpoint_path": "/proj/cvl/users/x_maeca/LFR_project/open-clip/semiclip/results/semiclip_ablation/no_intramodal/stage2_final.pt",
+      "checkpoint_type": "finetune",
+      "num_samples": 219,
+      "accuracy": 0.8858447488584474,
+      "weighted_precision": 0.8840832176448614,
+      "weighted_recall": 0.8858447488584474,
+      "weighted_f1": 0.8748382033998473
+    },
+    {
+      "label": "no_crossmodal",
+      "checkpoint_path": "/proj/cvl/users/x_maeca/LFR_project/open-clip/semiclip/results/semiclip_ablation/no_crossmodal/stage2_final.pt",
+      "checkpoint_type": "finetune",
+      "num_samples": 219,
+      "accuracy": 0.8949771689497716,
+      "weighted_precision": 0.8996844353008735,
+      "weighted_recall": 0.8949771689497716,
+      "weighted_f1": 0.8917595688103345
+    }
+  ]
+}
