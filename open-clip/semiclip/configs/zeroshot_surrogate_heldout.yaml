@@ -1,0 +1,22 @@
+image_dir: ../../../RSICD_images
+json_path: ../../../dataset_rsicd.json
+dataset_split: val
+class_dir: ../../../txtclasses_rsicd
+models:
+- label: sur_k2
+  model_name: ViT-B-32
+  pretrained_tag: laion2b_s34b_b79k
+  checkpoint_type: finetune
+  checkpoint_path: ../results/semiclip_ablation/all_unique/surrogate_k2/stage2_final.pt
+- label: sur_k4
+  model_name: ViT-B-32
+  pretrained_tag: laion2b_s34b_b79k
+  checkpoint_type: finetune
+  checkpoint_path: ../results/semiclip_ablation/all_unique/seed_42_ratio_0.3/stage2_final.pt
+- label: sur_k8
+  model_name: ViT-B-32
+  pretrained_tag: laion2b_s34b_b79k
+  checkpoint_type: finetune
+  checkpoint_path: ../results/semiclip_ablation/all_unique/surrogate_k8/stage2_final.pt
+subset_filenames_json: ../results/semiclip_ablation/baseline/concepts.json
+subset_filenames_key: labeled_validation_filenames
