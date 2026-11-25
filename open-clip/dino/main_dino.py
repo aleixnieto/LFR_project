@@ -21,7 +21,7 @@ from torchvision import transforms
 from torch.utils.data import DataLoader
 
 from plot_utils import plot_training_history
-from validate_features import evaluate_linear_probe
+from validate_features import evaluate_knn, evaluate_linear_probe
 from main_zeroshot import load_model_config, load_dataset_config
 from dataloader import RSICDImageOnlyDataset, RSICDZeroShotDataset
 from augment_utils import GaussianBlur, Solarization
@@ -53,6 +53,46 @@ class DinoConfig:
     # Dataloader
     batch_size: int
     num_workers: int
+
+    # Monitoring of the representation during training (checkpoint selection).
+    # "knn": weighted k-NN as in DINO, nothing is trained. "linear_probe": the earlier logistic regression.
+    eval_method: str = "knn"
+    knn_k: int = 20
+    knn_temperature: float = 0.07
+    # "project": the 875/219 partition of the labeled split used by the other experiments (seed 42).
+    # "stratified": the class-stratified 80/20 split of the earlier linear probe.
+    eval_split: str = "project"
+    eval_split_seed: int = 42
+
+    def __post_init__(self):
+        if self.eval_method not in ("knn", "linear_probe"):
+            raise ValueError(f"eval_method must be 'knn' or 'linear_probe', got {self.eval_method!r}")
+        if self.eval_split not in ("project", "stratified"):
+            raise ValueError(f"eval_split must be 'project' or 'stratified', got {self.eval_split!r}")
+
+
+def evaluate_representation(model, probe_loader, device, dino_config: DinoConfig, json_path):
+    """Accuracy on the held-out labeled images with the configured monitor."""
+    if dino_config.eval_method == "knn":
+        return evaluate_knn(
+            model,
+            probe_loader,
+            device,
+            k=dino_config.knn_k,
+            temperature=dino_config.knn_temperature,
+            split_mode=dino_config.eval_split,
+            json_path=json_path,
+            seed=dino_config.eval_split_seed,
+        )
+    return evaluate_linear_probe(
+        model,
+        probe_loader,
+        device,
+        seed=dino_config.eval_split_seed,
+        split_mode=dino_config.eval_split,
+        json_path=json_path,
+    )
+
 
 class DinoHead(torch.nn.Module):
     def __init__(self, in_dim, hidden_dim,
@@ -455,9 +495,17 @@ def main():
     probe_history = []
     best_probe_accuracy = float("-inf")
 
+    # Monitor of the representation: weighted k-NN (default) or the linear probe
+    if dino_config.eval_method == "knn":
+        monitor_key = "knn"
+        monitor_label = f"k-NN (k={dino_config.knn_k})"
+    else:
+        monitor_key = "linear_probe"
+        monitor_label = "Linear Probe"
+
     # Original CLIP baseline (epoch 0)
-    baseline_accuracy = evaluate_linear_probe(
-        model, probe_loader, device
+    baseline_accuracy = evaluate_representation(
+        model, probe_loader, device, dino_config, dataset_config.json_path
     )
 
     probe_frequency = 5
@@ -468,7 +516,7 @@ def main():
         "accuracy": baseline_accuracy
     })
 
-    print(f"Baseline Accuracy: {baseline_accuracy:.4f}")
+    print(f"Baseline {monitor_label} accuracy: {baseline_accuracy:.4f}")
 
     epochs = args.epochs if args.epochs is not None else dino_config.epochs
 
@@ -483,10 +531,10 @@ def main():
             "epoch": epoch + 1,
             "train_loss": train_loss,
         })
-        # Evaluate linear probe periodically
+        # Evaluate the representation periodically (k-NN by default)
         if (epoch + 1) % probe_frequency == 0 or epoch + 1 == epochs:
-            accuracy = evaluate_linear_probe(
-                model, probe_loader, device
+            accuracy = evaluate_representation(
+                model, probe_loader, device, dino_config, dataset_config.json_path
             )
             probe_history.append({
                 "epoch": epoch + 1,
@@ -494,10 +542,10 @@ def main():
             })
             print(
                 f"Epoch {epoch + 1} | "
-                f"Linear probe accuracy: {accuracy:.4f}"
+                f"{monitor_label} accuracy: {accuracy:.4f}"
             )
 
-            # Save best checkpoint based on probe accuracy
+            # Save best checkpoint based on the monitored accuracy
             if accuracy > best_probe_accuracy:
                 best_probe_accuracy = accuracy
 
@@ -506,6 +554,7 @@ def main():
                     "model_state_dict": model.state_dict(),
                     "optimizer_state_dict": optimizer.state_dict(),
                     "probe_accuracy": accuracy,
+                    "monitor_method": monitor_key,
                 }, best_checkpoint_path)
 
                 print(f"New best checkpoint: {best_checkpoint_path}")
@@ -537,13 +586,21 @@ def main():
         ) as f:
             json.dump({
                 "training": history,
-                "linear_probe": probe_history
+                "monitor": {
+                    "method": monitor_key,
+                    "split": dino_config.eval_split,
+                    "split_seed": dino_config.eval_split_seed,
+                    "knn_k": dino_config.knn_k,
+                    "knn_temperature": dino_config.knn_temperature,
+                },
+                monitor_key: probe_history
             }, f, indent=2)
 
     plot_training_history(
         history,
         probe_history,
-        DEFAULT_OUTPUT_DIR
+        DEFAULT_OUTPUT_DIR,
+        monitor_label=monitor_label
     )
     print("DINO training completed.")
 

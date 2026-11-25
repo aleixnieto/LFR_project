@@ -2,7 +2,7 @@
 # DINO implementation
 This project investigates self-supervised domain adaptation of a pretrained CLIP visual encoder to remote sensing imagery using DINO.
 
-We initialize the student and teacher networks from the visual encoder of OpenCLIP ViT-B/32 and train them on unlabeled RSICD images using DINO's objective. After training, we discard the projection head and evaluate the features using linear-probe classification across the 31 classes of the RSICD dataset.
+We initialize the student and teacher networks from the visual encoder of OpenCLIP ViT-B/32 and train them on unlabeled RSICD images using DINO's objective. After training, we discard the projection head and evaluate the frozen features with a weighted k-NN classifier, as in DINO (a linear probe is available as an alternative), across the 31 classes of the RSICD dataset.
 
 
 ## Background on DINO
@@ -96,10 +96,21 @@ The student and teacher each consists of:
 
 The teacher is initialized as a copy of the student. After domain adaptation, only the student visual encoder is used for downstream classification.
 
-### Linear probe evaluation
-To measure whether domain adaptation improves the visual representations, we perform linear-probe classification every 5 epochs on the validation set.
+### Monitoring the representation during training (k-NN)
+To measure whether domain adaptation improves the visual representations, we classify the held-out labeled images every 5 epochs with a weighted k-NN classifier, as in DINO's [`eval_knn.py`](https://github.com/facebookresearch/dino/blob/main/eval_knn.py). The features are the L2-normalized image embeddings of the student encoder. Each held-out image votes with its `k = 20` most similar labeled reference images, and a neighbor with cosine similarity `s` adds `exp(s / 0.07)` to the score of its class. No classifier is trained.
 
-The checkpoint with the highest measured linear-probe validation accuracy is selected as the best adapted model.
+The labeled images are the RSICD `val` split, divided into the same 875 reference and 219 held-out images that the other experiments of this repository use (`eval_split: project`, seed 42). The checkpoint with the highest k-NN accuracy on the 219 held-out images is selected as the best adapted model.
+
+The earlier supervised linear probe is still available with `eval_method: linear_probe` in the config. Together with `eval_split: stratified` it reproduces the original protocol (logistic regression on a class-stratified 80/20 split).
+
+A finished run does not have to be retrained to switch to k-NN. `select_checkpoint.py` scores saved checkpoints (and the original CLIP encoder, shown as epoch 0) with the same k-NN monitor, using the labeled split only:
+
+```bash
+python open-clip/dino/select_checkpoint.py \
+    --checkpoints results/dino/checkpoint_epoch_*.pth
+```
+
+It prints the held-out k-NN accuracy per checkpoint, marks the selected one and writes `results/dino/knn_selection.json`.
 
 ### Training configuration
 
@@ -127,9 +138,13 @@ We also use separate learning rates for the pretrained visual encoder and the ne
 
 
 ## Run training yourself
-`python open_clip/dino/main_dino.py`
+`python open-clip/dino/main_dino.py`
+
+The monitored accuracies are written to `results/dino/history.json` (key `knn`, or `linear_probe` for the earlier protocol).
 
 ## Results
+The numbers in this section and in the test evaluation below were obtained with the earlier linear-probe protocol. They have not been recomputed with k-NN yet.
+
 Training loss, and linear probe evaluated on validation set:
 
 ![Training results](training_history.png).
@@ -164,7 +179,22 @@ The improvement on the held-out test set (+0.82 percentage points) is smaller th
 
 #### Reproducing the Evaluation
 
-From the repository root:
+From the repository root, the linear-probe numbers above:
+
+```bash
+python open-clip/dino/evaluate_test.py \
+    --device cuda \
+    --checkpoint results/dino/best_model.pth \
+    --method linear
+```
+
+### k-NN evaluation on the test set
+
+Without `--method`, `evaluate_test.py` uses the weighted k-NN classifier (`k = 20`, temperature 0.07):
+
+1. Freeze the visual encoder and extract 512-dimensional image embeddings.
+2. Use all 1,094 labeled validation images as the reference set. No classifier is trained.
+3. Classify the 1,093 held-out test images once.
 
 ```bash
 python open-clip/dino/evaluate_test.py \
@@ -172,6 +202,6 @@ python open-clip/dino/evaluate_test.py \
     --checkpoint results/dino/best_model.pth
 ```
 
+The script also reports the k-NN accuracy on the 219 held-out labeled images for `k` in {1, 5, 10, 20} (reference set: the 875 other labeled images), so `k` can be checked without the test split. It prints an exact McNemar test between the original and the adapted encoder and writes `metrics.json` and the per-image test predictions to `evaluations/dino_knn/`. `--method both` runs k-NN and the linear probe in one go.
 
-
-
+Both the k-NN classifier and the linear probe use the scene labels of the labeled split, so they are supervised evaluations of the frozen features and complement the zero-shot evaluation of the other models.

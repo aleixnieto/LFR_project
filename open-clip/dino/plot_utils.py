@@ -2,8 +2,8 @@ import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
-def plot_training_history(history, probe_history, output_dir):
-    """Plot DINO training loss and linear-probe validation accuracy."""
+def plot_training_history(history, probe_history, output_dir, monitor_label="Linear Probe"):
+    """Plot DINO training loss and the monitored validation accuracy (k-NN or linear probe)."""
 
     epochs = [entry["epoch"] for entry in history]
     losses = [entry["train_loss"] for entry in history]
@@ -20,9 +20,9 @@ def plot_training_history(history, probe_history, output_dir):
     axes[0].set_ylabel("Cross-entropy loss")
     axes[0].grid(True, alpha=0.3)
 
-    # Right: Linear-probe performance
+    # Right: monitored performance on the held-out labeled images
     axes[1].plot(probe_epochs, probe_accuracies, marker="o")
-    axes[1].set_title("Linear Probe Validation Accuracy")
+    axes[1].set_title(f"{monitor_label} Validation Accuracy")
     axes[1].set_xlabel("DINO Epoch")
     axes[1].set_ylabel("Accuracy (%)")
     axes[1].set_ylim(0, 100)
