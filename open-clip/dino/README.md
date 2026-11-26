@@ -138,44 +138,40 @@ We also use separate learning rates for the pretrained visual encoder and the ne
 
 
 ## Run training yourself
-`python open-clip/dino/main_dino.py`
+`python open-clip/dino/main_dino.py --epochs 30`
 
 The monitored accuracies are written to `results/dino/history.json` (key `knn`, or `linear_probe` for the earlier protocol).
 
 ## Results
-The numbers in this section and in the test evaluation below were obtained with the earlier linear-probe protocol. They have not been recomputed with k-NN yet.
-
-Training loss, and linear probe evaluated on validation set:
+Training loss, and k-nn (k=20) evaluated on validation set:
 
 ![Training results](training_history.png).
 
-| Metric | Original CLIP | DINO (Epoch 15) |
+| Metric | Original CLIP | DINO (Epoch 18) |
 |---|---:|---:|
-| Correct predictions | 207 / 219 | **215 / 219** |
-| Accuracy | 94.52% | **98.17%** |
+| Correct predictions | 208 / 219 | **213 / 219** |
+| Accuracy | 94.98% | **97.26%** |
 
 
 ## Final Test Set Evaluation
 
-After selecting the best DINO checkpoint (epoch 15), we evaluate the adapted visual encoder on the held-out RSICD test set.
+After training, select the best checkpoint with: `python open-clip/dino/select_checkpoint.py --checkpoints results/dino/checkpoint_epoch_*.pth`. Then, evaluate with `python open-clip/dino/evaluate_test.py --checkpoint results/dino.checkpoint_epoch_<BEST_CHECKPOINT>.pth --method both`
 
-1. Freeze the visual encoder and extract 512-dimensional image embeddings.
-2. Train a logistic regression classifier on all 1,094 labeled validation images.
-3. Evaluate classification performance on the 1,093 held-out test images.
+After selecting the best DINO checkpoint (epoch 18), we evaluate the adapted visual encoder on the held-out RSICD test set.
 
 ### Results
 
 | Metric | Original CLIP | DINO-adapted CLIP (Epoch 15) |
 |---|---:|---:|
-| Correct predictions | 1014 / 1093 | **1023 / 1093** |
-| Accuracy | 92.77% | **93.60%** |
-| Macro-F1 | 0.9209 | **0.9380** |
+| Correct predictions | 982 / 1093 | **1007 / 1093** |
+| Accuracy | 89.84% | **92.13%** |
+| Macro-F1 | 0.8954 | **0.9263** |
+
+
 
 ### Discussion
 
-DINO domain adaptation improves test accuracy from **92.77% to 93.60%**. Macro-F1 also improves from **0.9209 to 0.9380**, suggesting improvements in classification performance across the different remote sensing classes.
-
-The improvement on the held-out test set (+0.82 percentage points) is smaller than the improvement observed during validation (+3.65 percentage points).
+DINO domain adaptation improves test accuracy from **89.84% to 92.13%%**, i.e. 2.29 percentage points, and in absolute terms, 982/1093 vs 1007/1093. Macro-F1 also improves from **0.0.8954 to 0.0.9263**, suggesting improvements in classification performance across the different remote sensing classes.
 
 #### Reproducing the Evaluation
 

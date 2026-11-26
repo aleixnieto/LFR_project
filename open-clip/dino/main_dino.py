@@ -508,8 +508,8 @@ def main():
         model, probe_loader, device, dino_config, dataset_config.json_path
     )
 
-    probe_frequency = 5
-    checkpoint_frequency = 5
+    probe_frequency = 1
+    checkpoint_frequency = 1
 
     probe_history.append({
         "epoch": 0,
