@@ -35,6 +35,13 @@ head_lr: 0.0001
 weight_decay: 0.04        # in DINO paper, starts at 0.04 and goes to 0.4
 seed: 42
 
+# Monitoring of the representation during training (used to select the best checkpoint)
+eval_method: knn          # knn: weighted k-NN as in DINO's eval_knn.py (nothing is trained); linear_probe: earlier logistic regression
+knn_k: 20                 # DINO paper: 20 neighbors
+knn_temperature: 0.07     # DINO paper
+eval_split: project       # project: 875/219 partition of the labeled split used by the other experiments; stratified: 80/20 split of the earlier probe
+eval_split_seed: 42
+
 # Output
 output_dir: ../../../results/open_clip_dino_rsicd
 
